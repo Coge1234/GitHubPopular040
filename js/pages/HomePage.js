@@ -34,7 +34,6 @@ export default class HomePage extends Component {
                         selectedTitleStyle={{color:'red'}}
                         renderIcon={()=> <Image style={styles.image} source={require('../../res/images/ic_polular.png')}/>}
                         renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'red'}]} source={require('../../res/images/ic_polular.png')}/>}
-                        badgeText="1"
                         onPress={()=> this.setState({selectedTab : 'tb_popular'})}>
                         <PopularPage/>
                     </TabNavigator.Item>
@@ -53,7 +52,6 @@ export default class HomePage extends Component {
                         selectedTitleStyle={{color:'blue'}}
                         renderIcon={()=> <Image style={styles.image} source={require('../../res/images/ic_favorite.png')}/>}
                         renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'blue'}]} source={require('../../res/images/ic_favorite.png')}/>}
-                        badgeText="1"
                         onPress={()=> this.setState({selectedTab : 'tb_favorite'})}>
                         <View style={styles.page3}></View>
                     </TabNavigator.Item>
