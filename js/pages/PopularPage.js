@@ -17,6 +17,7 @@ import ScrollableTabView, {ScrollableTabBar} from 'react-native-scrollable-tab-v
 import NavigationBar from '../common/NavigationBar';
 import DataRepository from '../expand/dao/DataRepository'
 import RepositoryCell from '../common/RepositoryCell'
+import LanguageDao, {FLAG_LANGUAGE} from '../expand/dao/LanguageDao'
 const URL = 'https://api.github.com/search/repositories?q=';
 const QUERY_STAR = '&sort=stars';
 
@@ -25,38 +26,28 @@ export default class PopularPage extends Component {
     constructor(props) {
         super(props);
         // 初始状态
-        this.state = {result: ''};
-        this.dataRepository = new DataRepository();
+        this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
+        this.state = {languages: []};
     }
 
-    onLoad() {
-        let url = this.genUrl(this.text);
-        // let url = 'https://api.github.com/search/repositories?q=java&sort=stars';
-        this.dataRepository.fetchNetRepository(url)
+    componentDidMount() {
+        this.loadData();
+    }
+
+    loadData() {
+        this.languageDao.fetch()
             .then(result=> {
                 this.setState({
-                    result: JSON.stringify(result)
+                    languages: result
                 })
             })
             .catch(error=> {
-                this.setState({
-                    result: JSON.stringify(error)
-                })
+                console.log(error);
             })
     }
 
-    genUrl(key) {
-        return URL + key + QUERY_STAR;
-    }
-
     render() {
-        return <View style={styles.container}>
-            <NavigationBar
-                title={'最热'}
-                statusBar={{
-                    backgroundColor:'#2196F3'
-                }}
-            />
+        let content = this.state.languages.length > 0 ?
             <ScrollableTabView
                 tabBarBackgroundColor="#2196F3"
                 tabBarInactiveTextColor="mintcream"
@@ -64,11 +55,19 @@ export default class PopularPage extends Component {
                 tabBarUnderlineStyle={{backgroundColor:'#e7e7e7', height:2}}
                 renderTabBar={()=><ScrollableTabBar/>}
             >
-                <PopularTab tabLabel="Java">JAVA</PopularTab>
-                <PopularTab tabLabel="iOS">IOS</PopularTab>
-                <PopularTab tabLabel="Android">Android</PopularTab>
-                <PopularTab tabLabel="JavaScript">js</PopularTab>
-            </ScrollableTabView>
+                {this.state.languages.map((result, i, arr)=> {
+                    let lan = arr[i];
+                    return lan.checked ? <PopularTab key = {i} tabLabel={lan.name}></PopularTab> : null;
+                })}
+            </ScrollableTabView> : null;
+        return <View style={styles.container}>
+            <NavigationBar
+                title={'最热'}
+                statusBar={{
+                    backgroundColor:'#2196F3'
+                }}
+            />
+            {content}
         </View>
     }
 }
