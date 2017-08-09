@@ -12,7 +12,9 @@ import {
     ListView,
 } from 'react-native';
 import TabNavigator from 'react-native-tab-navigator';
-import PopularPage from './PopularPage'
+import PopularPage from './PopularPage';
+import AsyncStoreTest from '../../AsyncStorageTest'
+import MyPage from './my/MyPage'
 
 export default class HomePage extends Component {
     // 构造
@@ -31,9 +33,9 @@ export default class HomePage extends Component {
                     <TabNavigator.Item
                         selected={this.state.selectedTab === 'tb_popular'}
                         title="最热"
-                        selectedTitleStyle={{color:'red'}}
+                        selectedTitleStyle={{color:'#2196F3'}}
                         renderIcon={()=> <Image style={styles.image} source={require('../../res/images/ic_polular.png')}/>}
-                        renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'red'}]} source={require('../../res/images/ic_polular.png')}/>}
+                        renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'#2196F3'}]} source={require('../../res/images/ic_polular.png')}/>}
                         onPress={()=> this.setState({selectedTab : 'tb_popular'})}>
                         <PopularPage/>
                     </TabNavigator.Item>
@@ -44,7 +46,7 @@ export default class HomePage extends Component {
                         renderIcon={()=> <Image style={styles.image} source={require('../../res/images/ic_trending.png')}/>}
                         renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'yellow'}]} source={require('../../res/images/ic_trending.png')}/>}
                         onPress={()=> this.setState({selectedTab : 'tb_trending'})}>
-                        <View style={styles.page2}></View>
+                        <AsyncStoreTest/>
                     </TabNavigator.Item>
                     <TabNavigator.Item
                         selected={this.state.selectedTab === 'tb_favorite'}
@@ -62,7 +64,7 @@ export default class HomePage extends Component {
                         renderIcon={()=> <Image style={styles.image} source={require('../../res/images/ic_my.png')}/>}
                         renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'gray'}]} source={require('../../res/images/ic_my.png')}/>}
                         onPress={()=> this.setState({selectedTab : 'tb_my'})}>
-                        <View style={styles.page4}></View>
+                        <MyPage {...this.props}/>
                     </TabNavigator.Item>
                 </TabNavigator>
             </View>

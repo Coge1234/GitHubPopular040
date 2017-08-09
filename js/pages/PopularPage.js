@@ -10,7 +10,8 @@ import {
     Text,
     View,
     TextInput,
-    ListView
+    ListView,
+    RefreshControl
 } from 'react-native';
 import ScrollableTabView, {ScrollableTabBar} from 'react-native-scrollable-tab-view'
 import NavigationBar from '../common/NavigationBar';
@@ -52,8 +53,15 @@ export default class PopularPage extends Component {
         return <View style={styles.container}>
             <NavigationBar
                 title={'最热'}
+                statusBar={{
+                    backgroundColor:'#2196F3'
+                }}
             />
             <ScrollableTabView
+                tabBarBackgroundColor="#2196F3"
+                tabBarInactiveTextColor="mintcream"
+                tabBarActiveTextColor="white"
+                tabBarUnderlineStyle={{backgroundColor:'#e7e7e7', height:2}}
                 renderTabBar={()=><ScrollableTabBar/>}
             >
                 <PopularTab tabLabel="Java">JAVA</PopularTab>
@@ -65,7 +73,7 @@ export default class PopularPage extends Component {
     }
 }
 
-class PopularTab extends Component{
+class PopularTab extends Component {
     // 构造
     constructor(props) {
         super(props);
@@ -73,20 +81,25 @@ class PopularTab extends Component{
         this.dataRepository = new DataRepository();
         this.state = {
             result: '',
-            dataSource:new ListView.DataSource({rowHasChanged:(r1,r2)=>r1!==r2})
+            dataSource: new ListView.DataSource({rowHasChanged: (r1, r2)=>r1 !== r2}),
+            isLoading: false
         };
     }
 
     componentDidMount() {
-        this.onLoad();
+        this.loadData();
     }
 
-    onLoad() {
+    loadData() {
+        this.setState({
+            isLoading: true
+        });
         let url = URL + this.props.tabLabel + QUERY_STAR;
         this.dataRepository.fetchNetRepository(url)
             .then(result=> {
                 this.setState({
-                    dataSource:this.state.dataSource.cloneWithRows(result.items)
+                    dataSource: this.state.dataSource.cloneWithRows(result.items),
+                    isLoading: false,
                 })
             })
             .catch(error=> {
@@ -97,15 +110,23 @@ class PopularTab extends Component{
             })
     }
 
-    renderRow(data){
+    renderRow(data) {
         return <RepositoryCell data={data}/>
     }
 
-    render(){
-        return <View>
+    render() {
+        return <View style={{flex:1}}>
             <ListView
                 dataSource={this.state.dataSource}
                 renderRow={(data)=>this.renderRow(data)}
+                refreshControl={<RefreshControl
+                                refreshing={this.state.isLoading}
+                                onRefresh={()=>this.loadData()}
+                                colors={['#2196F3']}
+                                tintColor={'#2196F3'}
+                                title={'Loading...'}
+                                titleColor={'#2196F3'}
+                />}
             />
         </View>
     }
@@ -113,7 +134,8 @@ class PopularTab extends Component{
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        backgroundColor: 'white'
     },
     tips: {
         fontSize: 29

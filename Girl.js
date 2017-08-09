@@ -22,11 +22,13 @@ export default class Girl extends Component {
 
     renderButton(image) {
         return <TouchableOpacity
+            style={{padding:8}}
             onPress={()=>{
                 this.props.navigator.pop();
-            }}
-        >
-            <Image style={{width: 22, height:22, margin:5}} source={image}></Image>
+            }}>
+            <Image
+                style={{width: 22, height:22, margin:5}}
+                source={image}/>
         </TouchableOpacity>
     }
 

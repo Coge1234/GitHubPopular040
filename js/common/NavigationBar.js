@@ -17,7 +17,7 @@ const StatusBarShape = {
     backgroundColor: PropTypes.string,
     barStyle: PropTypes.oneOf(['default', 'light-content', 'dark-content']),
     hidden: PropTypes.bool
-}
+};
 
 export default class NavigationBar extends Component {
     static propTypes = {
@@ -33,7 +33,8 @@ export default class NavigationBar extends Component {
         statusBar: {
             barStyle: 'light-content',
             title: '',
-            hidden: false
+            hidden: false,
+            backgroundColor:'#2196F3'
         }
     }
     // 构造
@@ -70,7 +71,7 @@ export default class NavigationBar extends Component {
 }
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'gray'
+        backgroundColor: '#2196F3'
     },
     navBar: {
         justifyContent: 'space-between',
