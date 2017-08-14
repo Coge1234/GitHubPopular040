@@ -14,6 +14,7 @@ import {
     RefreshControl,
     DeviceEventEmitter
 } from 'react-native';
+import RepositoryDetail from './RepositoryDetail'
 import ScrollableTabView, {ScrollableTabBar} from 'react-native-scrollable-tab-view'
 import NavigationBar from '../common/NavigationBar';
 import DataRepository from '../expand/dao/DataRepository'
@@ -58,7 +59,7 @@ export default class PopularPage extends Component {
             >
                 {this.state.languages.map((result, i, arr)=> {
                     let lan = arr[i];
-                    return lan.checked ? <PopularTab key={i} tabLabel={lan.name}></PopularTab> : null;
+                    return lan.checked ? <PopularTab key={i} tabLabel={lan.name} {...this.props}></PopularTab> : null;
                 })}
             </ScrollableTabView> : null;
         return <View style={styles.container}>
@@ -125,8 +126,22 @@ class PopularTab extends Component {
             })
     }
 
+    onSelect(item){
+        this.props.navigator.push({
+            component:RepositoryDetail,
+            params:{
+                item:item,
+                ...this.props
+            }
+        })
+    }
+
     renderRow(data) {
-        return <RepositoryCell data={data}/>
+        return <RepositoryCell
+            onSelect={()=>this.onSelect(data)}
+            key={data.id}
+            data={data}
+        />
     }
 
     render() {
