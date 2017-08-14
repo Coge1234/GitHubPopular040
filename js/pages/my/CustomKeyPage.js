@@ -24,14 +24,15 @@ export default class CustomKeyPage extends Component {
     constructor(props) {
         super(props);
         // 初始状态
-        this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
         this.changeValues = [];
+        this.isRemoveKey = this.props.isRemoveKey ? true : false;
         this.state = {
             dataArray: []
         }
     }
 
     componentDidMount() {
+        this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
         this.loadData();
     }
 
@@ -48,9 +49,12 @@ export default class CustomKeyPage extends Component {
     }
 
     onSave() {
-        if (this.changeValues.length === 0){
+        if (this.changeValues.length === 0) {
             this.props.navigator.pop();
             return;
+        }
+        for (let i = 0, len = this.changeValues.length; i < len; i++) {
+            ArrayUtils.remove(this.state.dataArray, this.changeValues[i]);
         }
         this.languageDao.save(this.state.dataArray);
         this.props.navigator.pop();
@@ -86,7 +90,7 @@ export default class CustomKeyPage extends Component {
     }
 
     onClick(data) {
-        data.checked = !data.checked;
+        if (!this.isRemoveKey) data.checked = !data.checked;
         ArrayUtils.updateArray(this.changeValues, data);
     }
 
@@ -97,7 +101,7 @@ export default class CustomKeyPage extends Component {
                 style={{flex: 1, padding:10}}
                 onClick={()=>this.onClick(data)}
                 leftText={leftText}
-                isChecked = {data.checked}
+                isChecked={data.checked}
                 checkedImage={<Image style={{tintColor:'#6495ED'}}
                     source={require('./images/ic_check_box.png')}/>}
                 unCheckedImage={<Image style={{tintColor:'#6495ED'}}
@@ -105,8 +109,9 @@ export default class CustomKeyPage extends Component {
             />
         )
     }
-    onBack(){
-        if (this.changeValues.length === 0){
+
+    onBack() {
+        if (this.changeValues.length === 0) {
             this.props.navigator.pop();
             return;
         }
@@ -114,29 +119,34 @@ export default class CustomKeyPage extends Component {
             '提示',
             '要保存修改吗？',
             [
-                {text:'不保存', onPress:()=>{
+                {
+                    text: '不保存', onPress: ()=> {
                     this.props.navigator.pop();
-                }, style:'cancel'},
-                {text:'保存', onPress:()=>{
+                }, style: 'cancel'
+                },
+                {
+                    text: '保存', onPress: ()=> {
                     this.onSave()
-                }}
+                }
+                }
             ]
-
         )
     }
 
     render() {
+        let title = this.isRemoveKey ? '标签移除' : '自定义标签';
+        let rightButtonTitle = this.isRemoveKey ? '移除' : '保存';
         let rightButton = <TouchableOpacity
             onPress={()=>this.onSave()}
         >
             <View style={{margin:10}}>
-                <Text style={styles.title}>保存</Text>
+                <Text style={styles.title}>{rightButtonTitle}</Text>
             </View>
         </TouchableOpacity>
         return (
             <View style={styles.container}>
                 <NavigationBar
-                    title={'自定义标签'}
+                    title={title}
                     style={{backgroundColor:'#2196F3'}}
                     leftButton={ViewUtils.getLeftButton(()=>this.onBack())}
                     rightButton={rightButton}
