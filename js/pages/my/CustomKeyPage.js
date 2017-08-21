@@ -96,12 +96,13 @@ export default class CustomKeyPage extends Component {
 
     renderCheckBox(data) {
         let leftText = data.name;
+        let isChecked = this.isRemoveKey ? false : data.checked;
         return (
             <CheckBox
                 style={{flex: 1, padding:10}}
                 onClick={()=>this.onClick(data)}
                 leftText={leftText}
-                isChecked={data.checked}
+                isChecked={isChecked}
                 checkedImage={<Image style={{tintColor:'#6495ED'}}
                     source={require('./images/ic_check_box.png')}/>}
                 unCheckedImage={<Image style={{tintColor:'#6495ED'}}

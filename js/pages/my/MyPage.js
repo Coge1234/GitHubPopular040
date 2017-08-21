@@ -63,6 +63,8 @@ export default class MyPage extends Component {
 
     clearArray() {
         AsyncStorage.removeItem("flag_language_key", (error)=> {
+        });
+        AsyncStorage.removeItem("flag_language_language", (error)=> {
         })
     }
 }
