@@ -12,7 +12,8 @@ import {
     TextInput,
     ListView,
     RefreshControl,
-    DeviceEventEmitter
+    DeviceEventEmitter,
+    TouchableOpacity
 } from 'react-native';
 import RepositoryDetail from './RepositoryDetail'
 import ScrollableTabView, {ScrollableTabBar} from 'react-native-scrollable-tab-view'
@@ -21,6 +22,12 @@ import DataRepository, {FLAG_STORAGE} from '../expand/dao/DataRepository'
 import TrendingCell from '../common/TrendingCell'
 import LanguageDao, {FLAG_LANGUAGE} from '../expand/dao/LanguageDao'
 const API_URL = 'https://github.com/trending/';
+import TimeSpan from '../model/TimeSpan'
+import Popover from '../common/Popover'
+var timeSpanTextArray = [
+    new TimeSpan('今 天', 'since=daily'),
+    new TimeSpan('本 周', 'since=weekly'),
+    new TimeSpan('本 月', 'since=monthly')];
 
 export default class TrendingPage extends Component {
     // 构造
@@ -28,7 +35,12 @@ export default class TrendingPage extends Component {
         super(props);
         // 初始状态
         this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_language);
-        this.state = {languages: []};
+        this.state = {
+            languages: [],
+            isVisible: false,
+            buttonRect: {},
+            timeSpan: timeSpanTextArray[0]
+        };
     }
 
     componentDidMount() {
@@ -47,6 +59,45 @@ export default class TrendingPage extends Component {
             })
     }
 
+    showPopover() {
+        this.refs.button.measure((ox, oy, width, height, px, py) => {
+            this.setState({
+                isVisible: true,
+                buttonRect: {x: px, y: py, width: width, height: height}
+            });
+        });
+    }
+
+    renderTitleView() {
+        return <View>
+            <TouchableOpacity
+                ref='button'
+                onPress={()=>this.showPopover()}
+            >
+                <View style={{flexDirection:'row', alignItems:'center'}}>
+                    <Text
+                        style={{fontSize:18, color:'white',fontWeight:'400'}}
+                    >趋势 {this.state.timeSpan.showText}</Text>
+                    <Image style={{width: 12, height:12, marginLeft:5}}
+                           source={require('../../res/images/ic_spinner_triangle.png')}/>
+                </View>
+            </TouchableOpacity>
+        </View>
+    }
+
+    closePopover() {
+        this.setState({
+            isVisible: false
+        })
+    }
+
+    onSelectTimeSpan(timeSpan) {
+        this.setState({
+            timeSpan:timeSpan,
+            isVisible:false
+        })
+    }
+
     render() {
         let content = this.state.languages.length > 0 ?
             <ScrollableTabView
@@ -58,17 +109,41 @@ export default class TrendingPage extends Component {
             >
                 {this.state.languages.map((result, i, arr)=> {
                     let lan = arr[i];
-                    return lan.checked ? <TrendingTab key={i} tabLabel={lan.name} {...this.props}/> : null;
+                    return lan.checked ? <TrendingTab key={i} tabLabel={lan.name}
+                                                      timeSpan={this.state.timeSpan} {...this.props}/> : null;
                 })}
             </ScrollableTabView> : null;
+        let timeSpanView =
+            <Popover
+                isVisible={this.state.isVisible}
+                fromRect={this.state.buttonRect}
+                placement="bottom"
+                onClose={()=>this.closePopover()}
+                contentStyle={{backgroundColor:'#343434', opacity:0.82}}
+            >
+                <View>
+                    {timeSpanTextArray.map((result, i, arr)=> {
+                        return <TouchableOpacity
+                            key={i}
+                            underlayColor='transparent'
+                            onPress={()=>this.onSelectTimeSpan(arr[i])}
+                        >
+                            <Text
+                                style={{fontSize:18, color:'white', padding:8, fontWeight:'400'}}
+                            >{arr[i].showText}</Text>
+                        </TouchableOpacity>
+                    })}
+                </View>
+            </Popover>
         return <View style={styles.container}>
             <NavigationBar
-                title={'趋势'}
+                titleView={this.renderTitleView()}
                 statusBar={{
                     backgroundColor:'#2196F3'
                 }}
             />
             {content}
+            {timeSpanView}
         </View>
     }
 }
@@ -87,55 +162,71 @@ class TrendingTab extends Component {
     }
 
     componentDidMount() {
-        this.loadData();
+        this.loadData(this.props.timeSpan, true);
     }
 
-    loadData() {
-        this.setState({
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.timeSpan !== this.props.timeSpan) {
+            this.loadData(nextProps.timeSpan)
+        }
+    }
+
+    onRefresh() {
+        this.loadData(this.props.timeSpan)
+    }
+
+    loadData(timeSpan, isRefresh) {
+        this.updateState({
             isLoading: true
         });
-        let url = this.genFetchUrl('?since=daily', this.props.tabLabel);
+        let url = this.genFetchUrl(timeSpan, this.props.tabLabel);
         this.dataRepository
             .fetchRepository(url)
             .then(result=> {
                 let items = result && result.items ? result.items : result ? result : [];
-                this.setState({
+                this.updateState({
                     dataSource: this.state.dataSource.cloneWithRows(items),
                     isLoading: false
                 });
-                DeviceEventEmitter.emit('showToast', '显示缓存数据');
                 if (result && result.update_date && !this.dataRepository.checkData(result.update_date)) {
                     return this.dataRepository.fetchNetRepository(url);
+                } else {
+                    DeviceEventEmitter.emit('showToast', '显示缓存数据');
                 }
             })
-            .then(items=>{
+            .then(items=> {
                 if (!items || items.length === 0) return;
-                this.setState({
-                    dataSource:this.state.dataSource.cloneWithRows(items)
+                this.updateState({
+                    dataSource: this.state.dataSource.cloneWithRows(items)
                 });
                 DeviceEventEmitter.emit('showToast', '显示网络数据');
             })
             .catch(error=> {
                 console.log(error);
                 this.setState({
-                    isLoading:false
+                    isLoading: false
                 })
             })
     }
 
-    onSelect(item){
+    updateState(dic) {
+        if (!this) return;
+        this.setState(dic)
+    }
+
+    onSelect(item) {
         this.props.navigator.push({
-            title:item.fullName,
-            component:RepositoryDetail,
-            params:{
-                item:item,
+            title: item.fullName,
+            component: RepositoryDetail,
+            params: {
+                item: item,
                 ...this.props
             }
         })
     }
 
     genFetchUrl(timeSpan, category) {
-        return API_URL + category + timeSpan.searchText;
+        return API_URL + category + '?' + timeSpan.searchText;
     }
 
     renderRow(data) {
@@ -153,7 +244,7 @@ class TrendingTab extends Component {
                 renderRow={(data)=>this.renderRow(data)}
                 refreshControl={<RefreshControl
                                 refreshing={this.state.isLoading}
-                                onRefresh={()=>this.loadData()}
+                                onRefresh={()=>this.onRefresh()}
                                 colors={['#2196F3']}
                                 tintColor={'#2196F3'}
                                 title={'Loading...'}
