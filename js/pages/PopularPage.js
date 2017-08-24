@@ -20,8 +20,12 @@ import NavigationBar from '../common/NavigationBar';
 import DataRepository, {FLAG_STORAGE} from '../expand/dao/DataRepository'
 import RepositoryCell from '../common/RepositoryCell'
 import LanguageDao, {FLAG_LANGUAGE} from '../expand/dao/LanguageDao'
+import ProjectModel from '../model/ProjectModel'
+import FavoriteDao from '../expand/dao/FavoriteDao'
+import Utils from '../utils/Utils'
 const URL = 'https://api.github.com/search/repositories?q=';
 const QUERY_STAR = '&sort=stars';
+var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_popular);
 
 export default class PopularPage extends Component {
     // 构造
@@ -83,7 +87,8 @@ class PopularTab extends Component {
         this.state = {
             result: '',
             dataSource: new ListView.DataSource({rowHasChanged: (r1, r2)=>r1 !== r2}),
-            isLoading: false
+            isLoading: false,
+            favoriteKeys: []
         };
     }
 
@@ -91,56 +96,101 @@ class PopularTab extends Component {
         this.loadData();
     }
 
+    /**
+     * 更新Project Item 收藏(Favorite)的状态
+     */
+    flushFavoriteState() {
+        let projectModels = [];
+        let items = this.items;
+        for(var i = 0, len = items.length; i < len; i++) {
+            projectModels.push(new ProjectModel(items[i], Utils.checkFavorite(items[i], this.state.favoriteKeys)))
+        }
+        this.updateState({
+            isLoading:false,
+            dataSource: this.getDataSource(projectModels)
+        })
+    }
+
+    getDataSource(data) {
+        return this.state.dataSource.cloneWithRows(data);
+    }
+
+    getFavoriteKeys() {
+        favoriteDao.getFavoriteKeys()
+            .then((keys)=>{
+                if (keys) {
+                    this.updateState({favoriteKeys:keys})
+                }
+                this.flushFavoriteState();
+            })
+            .catch(e=>{
+                //有异常的话也是要刷新一下
+                this.flushFavoriteState();
+            });
+    }
+
+    updateState(dic) {
+        if (!this) return;
+        this.setState(dic);
+    }
+
     loadData() {
-        this.setState({
+        this.updateState({
             isLoading: true
         });
         let url = URL + this.props.tabLabel + QUERY_STAR;
         this.dataRepository
             .fetchRepository(url)
             .then(result=> {
-                let items = result && result.items ? result.items : result ? result : [];
-                this.setState({
-                    dataSource: this.state.dataSource.cloneWithRows(items),
-                    isLoading: false
-                });
+                this.items = result && result.items ? result.items : result ? result : [];
+                this.getFavoriteKeys();
                 if (result && result.update_date && !this.dataRepository.checkData(result.update_date)) {
-                    DeviceEventEmitter.emit('showToast', '数据过时');
                     return this.dataRepository.fetchNetRepository(url);
-                } else {
-                    DeviceEventEmitter.emit('showToast', '显示缓存数据');
                 }
             })
             .then(items=>{
                 if (!items || items.length === 0) return;
-                this.setState({
-                    dataSource:this.state.dataSource.cloneWithRows(items)
-                });
-                DeviceEventEmitter.emit('showToast', '显示网络数据');
+                this.items = items;
+                this.getFavoriteKeys();
             })
             .catch(error=> {
                 console.log(error);
-                this.setState({
+                this.updateState({
                     isLoading:false
                 })
             })
     }
 
-    onSelect(item){
+    onSelect(projectModel){
         this.props.navigator.push({
+            title:projectModel.item.full_name,
             component:RepositoryDetail,
             params:{
-                item:item,
+                projectModel:projectModel,
                 ...this.props
             }
         })
     }
 
-    renderRow(data) {
+    /**
+     * favoriteIcon的单击回调方法
+     * @param item
+     * @param isFavorite
+     */
+    onFavorite(item, isFavorite) {
+        if (isFavorite) {
+            favoriteDao.saveFavoriteItem(item.id.toString(), JSON.stringify(item))
+        } else {
+            favoriteDao.removeFavoriteItem(item.id.toString());
+        }
+    }
+
+    renderRow(projectModel) {
         return <RepositoryCell
-            onSelect={()=>this.onSelect(data)}
-            key={data.id}
-            data={data}
+            key={projectModel.item.id}
+            projectModel={projectModel}
+            onSelect={()=>this.onSelect(projectModel)}
+            onFavorite = {(item, isFavorite)=>this.onFavorite(item, isFavorite)}
         />
     }
 
