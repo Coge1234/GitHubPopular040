@@ -21,13 +21,20 @@ import NavigationBar from '../common/NavigationBar';
 import DataRepository, {FLAG_STORAGE} from '../expand/dao/DataRepository'
 import TrendingCell from '../common/TrendingCell'
 import LanguageDao, {FLAG_LANGUAGE} from '../expand/dao/LanguageDao'
-const API_URL = 'https://github.com/trending/';
+import ProjectModel from '../model/ProjectModel'
+import FavoriteDao from '../expand/dao/FavoriteDao'
 import TimeSpan from '../model/TimeSpan'
 import Popover from '../common/Popover'
+import Utils from '../utils/Utils'
+
+const API_URL = 'https://github.com/trending/';
 var timeSpanTextArray = [
     new TimeSpan('今 天', 'since=daily'),
     new TimeSpan('本 周', 'since=weekly'),
     new TimeSpan('本 月', 'since=monthly')];
+var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_popular);
+var dataRepository = new DataRepository(FLAG_STORAGE.flag_trending);
+
 
 export default class TrendingPage extends Component {
     // 构造
@@ -49,12 +56,12 @@ export default class TrendingPage extends Component {
 
     loadData() {
         this.languageDao.fetch()
-            .then(result=> {
+            .then(result => {
                 this.setState({
                     languages: result
                 })
             })
-            .catch(error=> {
+            .catch(error => {
                 console.log(error);
             })
     }
@@ -72,13 +79,13 @@ export default class TrendingPage extends Component {
         return <View>
             <TouchableOpacity
                 ref='button'
-                onPress={()=>this.showPopover()}
+                onPress={() => this.showPopover()}
             >
-                <View style={{flexDirection:'row', alignItems:'center'}}>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <Text
-                        style={{fontSize:18, color:'white',fontWeight:'400'}}
+                        style={{fontSize: 18, color: 'white', fontWeight: '400'}}
                     >趋势 {this.state.timeSpan.showText}</Text>
-                    <Image style={{width: 12, height:12, marginLeft:5}}
+                    <Image style={{width: 12, height: 12, marginLeft: 5}}
                            source={require('../../res/images/ic_spinner_triangle.png')}/>
                 </View>
             </TouchableOpacity>
@@ -93,8 +100,8 @@ export default class TrendingPage extends Component {
 
     onSelectTimeSpan(timeSpan) {
         this.setState({
-            timeSpan:timeSpan,
-            isVisible:false
+            timeSpan: timeSpan,
+            isVisible: false
         })
     }
 
@@ -104,10 +111,10 @@ export default class TrendingPage extends Component {
                 tabBarBackgroundColor="#2196F3"
                 tabBarInactiveTextColor="mintcream"
                 tabBarActiveTextColor="white"
-                tabBarUnderlineStyle={{backgroundColor:'#e7e7e7', height:2}}
-                renderTabBar={()=><ScrollableTabBar/>}
+                tabBarUnderlineStyle={{backgroundColor: '#e7e7e7', height: 2}}
+                renderTabBar={() => <ScrollableTabBar/>}
             >
-                {this.state.languages.map((result, i, arr)=> {
+                {this.state.languages.map((result, i, arr) => {
                     let lan = arr[i];
                     return lan.checked ? <TrendingTab key={i} tabLabel={lan.name}
                                                       timeSpan={this.state.timeSpan} {...this.props}/> : null;
@@ -118,18 +125,18 @@ export default class TrendingPage extends Component {
                 isVisible={this.state.isVisible}
                 fromRect={this.state.buttonRect}
                 placement="bottom"
-                onClose={()=>this.closePopover()}
-                contentStyle={{backgroundColor:'#343434', opacity:0.82}}
+                onClose={() => this.closePopover()}
+                contentStyle={{backgroundColor: '#343434', opacity: 0.82}}
             >
                 <View>
-                    {timeSpanTextArray.map((result, i, arr)=> {
+                    {timeSpanTextArray.map((result, i, arr) => {
                         return <TouchableOpacity
                             key={i}
                             underlayColor='transparent'
-                            onPress={()=>this.onSelectTimeSpan(arr[i])}
+                            onPress={() => this.onSelectTimeSpan(arr[i])}
                         >
                             <Text
-                                style={{fontSize:18, color:'white', padding:8, fontWeight:'400'}}
+                                style={{fontSize: 18, color: 'white', padding: 8, fontWeight: '400'}}
                             >{arr[i].showText}</Text>
                         </TouchableOpacity>
                     })}
@@ -139,7 +146,7 @@ export default class TrendingPage extends Component {
             <NavigationBar
                 titleView={this.renderTitleView()}
                 statusBar={{
-                    backgroundColor:'#2196F3'
+                    backgroundColor: '#2196F3'
                 }}
             />
             {content}
@@ -153,11 +160,10 @@ class TrendingTab extends Component {
     constructor(props) {
         super(props);
         // 初始状态
-        this.dataRepository = new DataRepository(FLAG_STORAGE.flag_trending);
         this.state = {
-            result: '',
-            dataSource: new ListView.DataSource({rowHasChanged: (r1, r2)=>r1 !== r2}),
-            isLoading: false
+            dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
+            isLoading: false,
+            favoriteKeys: []
         };
     }
 
@@ -175,35 +181,64 @@ class TrendingTab extends Component {
         this.loadData(this.props.timeSpan)
     }
 
+    /**
+     * 更新Project Item 收藏(Favorite)的状态
+     */
+    flushFavoriteState() {
+        let projectModels = [];
+        let items = this.items;
+        for (var i = 0, len = items.length; i < len; i++) {
+            projectModels.push(new ProjectModel(items[i], Utils.checkFavorite(items[i], this.state.favoriteKeys)))
+        }
+        this.updateState({
+            isLoading: false,
+            dataSource: this.getDataSource(projectModels)
+        })
+    }
+
+    getDataSource(data) {
+        return this.state.dataSource.cloneWithRows(data);
+    }
+
+    /**
+     * 获取本地用户收藏的ProjectItem
+     */
+    getFavoriteKeys() {
+        favoriteDao.getFavoriteKeys()
+            .then((keys) => {
+                if (keys) {
+                    this.updateState({favoriteKeys: keys})
+                }
+                this.flushFavoriteState();
+            })
+            .catch(e => {
+                //有异常的话也是要刷新一下
+                this.flushFavoriteState();
+            });
+    }
+
     loadData(timeSpan, isRefresh) {
         this.updateState({
             isLoading: true
         });
         let url = this.genFetchUrl(timeSpan, this.props.tabLabel);
-        this.dataRepository
+        dataRepository
             .fetchRepository(url)
-            .then(result=> {
-                let items = result && result.items ? result.items : result ? result : [];
-                this.updateState({
-                    dataSource: this.state.dataSource.cloneWithRows(items),
-                    isLoading: false
-                });
-                if (result && result.update_date && !this.dataRepository.checkData(result.update_date)) {
-                    return this.dataRepository.fetchNetRepository(url);
-                } else {
-                    DeviceEventEmitter.emit('showToast', '显示缓存数据');
+            .then(result => {
+                this.items = result && result.items ? result.items : result ? result : [];
+                this.getFavoriteKeys();
+                if (!this.items || result && result.update_date && !dataRepository.checkData(result.update_date)) {
+                    return dataRepository.fetchNetRepository(url);
                 }
             })
-            .then(items=> {
+            .then(items => {
                 if (!items || items.length === 0) return;
-                this.updateState({
-                    dataSource: this.state.dataSource.cloneWithRows(items)
-                });
-                DeviceEventEmitter.emit('showToast', '显示网络数据');
+                this.items = items;
+                this.getFavoriteKeys();
             })
-            .catch(error=> {
+            .catch(error => {
                 console.log(error);
-                this.setState({
+                this.updateState({
                     isLoading: false
                 })
             })
@@ -214,41 +249,58 @@ class TrendingTab extends Component {
         this.setState(dic)
     }
 
-    onSelect(item) {
+    onSelect(projectModel) {
+        var item = projectModel.item;
         this.props.navigator.push({
             title: item.fullName,
             component: RepositoryDetail,
             params: {
-                item: item,
+                projectModel: projectModel,
+                parentComponent: this,
+                flag: FLAG_STORAGE.flag_trending,
                 ...this.props
             }
         })
+    }
+
+    /**
+     * favoriteIcon的单击回调方法
+     * @param item
+     * @param isFavorite
+     */
+    onFavorite(item, isFavorite) {
+        if (isFavorite) {
+            favoriteDao.saveFavoriteItem(item.fullName, JSON.stringify(item))
+        } else {
+            favoriteDao.removeFavoriteItem(item.fullName);
+        }
     }
 
     genFetchUrl(timeSpan, category) {
         return API_URL + category + '?' + timeSpan.searchText;
     }
 
-    renderRow(data) {
+    renderRow(projectModel) {
         return <TrendingCell
-            onSelect={()=>this.onSelect(data)}
-            key={data.id}
-            data={data}
+            key={projectModel.item.fullName}
+            projectModel={projectModel}
+            onSelect={() => this.onSelect(projectModel)}
+            onFavorite = {(item, isFavorite)=>this.onFavorite(item, isFavorite)}
         />
     }
 
     render() {
-        return <View style={{flex:1}}>
+        return <View style={{flex: 1}}>
             <ListView
                 dataSource={this.state.dataSource}
-                renderRow={(data)=>this.renderRow(data)}
+                renderRow={(data) => this.renderRow(data)}
                 refreshControl={<RefreshControl
-                                refreshing={this.state.isLoading}
-                                onRefresh={()=>this.onRefresh()}
-                                colors={['#2196F3']}
-                                tintColor={'#2196F3'}
-                                title={'Loading...'}
-                                titleColor={'#2196F3'}
+                    refreshing={this.state.isLoading}
+                    onRefresh={() => this.onRefresh()}
+                    colors={['#2196F3']}
+                    tintColor={'#2196F3'}
+                    title={'Loading...'}
+                    titleColor={'#2196F3'}
                 />}
             />
         </View>

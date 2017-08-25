@@ -19,8 +19,9 @@ export default class Utils {
      * @returns {boolean}
      */
     static checkFavorite(item, items) {
+        let id = item.id ? item.id.toString() : item.fullName;
         for (var i = 0, len = items.length; i < len; i++) {
-            if(item.id.toString() === items[i]) {
+            if(id === items[i]) {
                 return true;
             }
         }

@@ -115,6 +115,9 @@ class PopularTab extends Component {
         return this.state.dataSource.cloneWithRows(data);
     }
 
+    /**
+     * 获取本地用户收藏的ProjectItem
+     */
     getFavoriteKeys() {
         favoriteDao.getFavoriteKeys()
             .then((keys)=>{
