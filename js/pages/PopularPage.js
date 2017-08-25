@@ -83,6 +83,7 @@ class PopularTab extends Component {
     constructor(props) {
         super(props);
         // 初始状态
+        this.isFavoriteChanged = false;
         this.dataRepository = new DataRepository(FLAG_STORAGE.flag_popular);
         this.state = {
             result: '',
@@ -94,6 +95,22 @@ class PopularTab extends Component {
 
     componentDidMount() {
         this.loadData();
+        this.listener = DeviceEventEmitter.addListener('favoriteChanged_popular', ()=>{
+            this.isFavoriteChanged = true;
+        })
+    }
+
+    componentWillUnmount() {
+        if (this.listener) {
+            this.listener.remove();
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.isFavoriteChanged) {
+            this.isFavoriteChanged = false;
+            this.getFavoriteKeys();
+        }
     }
 
     /**

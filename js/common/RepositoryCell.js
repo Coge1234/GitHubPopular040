@@ -33,8 +33,8 @@ export default class RepositoryCell extends Component {
     setFavoriteState(isFavorite) {
         this.props.projectModel.isFavorite = isFavorite;
         this.setState({
-            isFavorite:isFavorite,
-            favoriteIcon:isFavorite ? require('../../res/images/ic_star.png')
+            isFavorite: isFavorite,
+            favoriteIcon: isFavorite ? require('../../res/images/ic_star.png')
                 : require('../../res/images/ic_unstar_transparent.png')
         })
     }
@@ -47,28 +47,28 @@ export default class RepositoryCell extends Component {
     render() {
         let item = this.props.projectModel.item ? this.props.projectModel.item
             : this.props.projectModel;
-        let favoriteButton = <TouchableOpacity
-            onPress={()=>this.onPressFavorite()} underlayColor='transparent' >
+        let favoriteButton = this.props.projectModel.item ? <TouchableOpacity
+            onPress={() => this.onPressFavorite()} underlayColor='transparent'>
             <Image
                 ref='favoriteIcon'
-                style={{width: 22, height: 22, tintColor:'#2196F3'}}
-                source={this.state.favoriteIcon} />
-        </TouchableOpacity>;
+                style={{width: 22, height: 22, tintColor: '#2196F3'}}
+                source={this.state.favoriteIcon}/>
+        </TouchableOpacity> : null;
         return <TouchableOpacity
             onPress={this.props.onSelect}
             style={styles.container}>
             <View style={styles.cell_container}>
                 <Text style={styles.title}>{item.full_name}</Text>
                 <Text style={styles.description}>{item.description}</Text>
-                <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
-                    <View style={{flexDirection:'row', justifyContent: 'space-between', alignItems:'center'}}>
-                        <Text >Author:</Text>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <Text>Author:</Text>
                         <Image
-                            style={{height: 22, width:22}}
-                            source={{uri:item.owner.avatar_url}}
+                            style={{height: 22, width: 22}}
+                            source={{uri: item.owner.avatar_url}}
                         />
                     </View>
-                    <View style={{flexDirection:'row', justifyContent: 'space-between'}}>
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                         <Text>Stars:</Text>
                         <Text>{item.stargazers_count}</Text>
                     </View>

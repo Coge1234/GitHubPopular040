@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import TabNavigator from 'react-native-tab-navigator';
 import PopularPage from './PopularPage';
+import FavoritePage from './FavoritePage'
 import AsyncStoreTest from '../../AsyncStorageTest';
 import WebViewTest from '../../WebViewTest'
 import MyPage from './my/MyPage'
@@ -60,7 +61,7 @@ export default class HomePage extends Component {
                 <TabNavigator>
                     {this._renderTab(PopularPage, 'tb_popular', '最热', require('../../res/images/ic_polular.png'))}
                     {this._renderTab(TrendingPage, 'tb_trending', '趋势', require('../../res/images/ic_trending.png'))}
-                    {this._renderTab(WebViewTest, 'tb_favorite', '收藏', require('../../res/images/ic_favorite.png'))}
+                    {this._renderTab(FavoritePage, 'tb_favorite', '收藏', require('../../res/images/ic_favorite.png'))}
                     {this._renderTab(MyPage, 'tb_my', '我的', require('../../res/images/ic_my.png'))}
                 </TabNavigator>
                 <Toast ref={toast=>this.toast=toast}/>

@@ -23,7 +23,7 @@ export default class FavoriteDao {
      * @param callback
      */
     saveFavoriteItem(key, value, callback) {
-        AsyncStorage.setItem(key, value, (error, result)=>{
+        AsyncStorage.setItem(key, value, (error, result) => {
             if (!error) {
                 this.updateFavoriteKeys(key, true);
             }
@@ -36,7 +36,7 @@ export default class FavoriteDao {
      * @param isAdd true 添加， false 删除
      */
     updateFavoriteKeys(key, isAdd) {
-        AsyncStorage.getItem(this.favoriteKey, (error, result)=>{
+        AsyncStorage.getItem(this.favoriteKey, (error, result) => {
             if (!error) {
                 var favoriteKeys = [];
                 if (result) {
@@ -58,12 +58,12 @@ export default class FavoriteDao {
      * @returns {Promise}
      */
     getFavoriteKeys() {
-        return new Promise((resolve, reject)=>{
-            AsyncStorage.getItem(this.favoriteKey, (error, result)=>{
+        return new Promise((resolve, reject) => {
+            AsyncStorage.getItem(this.favoriteKey, (error, result) => {
                 if (!error) {
                     try {
                         resolve(JSON.parse(result));
-                    } catch (e){
+                    } catch (e) {
                         reject(e);
                     }
                 } else {
@@ -78,10 +78,40 @@ export default class FavoriteDao {
      * @param key
      */
     removeFavoriteItem(key) {
-        AsyncStorage.removeItem(key, (error)=>{
+        AsyncStorage.removeItem(key, (error) => {
             if (!error) {
                 this.updateFavoriteKeys(key, false);
             }
+        })
+    }
+
+    /**
+     * 获取用户所收藏的项目
+     */
+    getAllItems() {
+        return new Promise((resolve, reject) => {
+            this.getFavoriteKeys().then(keys => {
+                var items = [];
+                if (keys) {
+                    AsyncStorage.multiGet(keys, (err, stores) => {
+                        try {
+                            stores.map((result, i, store) => {
+                                let key = store[i][0];
+                                let value = store[i][1];
+                                if (value) items.push(JSON.parse(value));
+                            })
+                            resolve(items);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                } else {
+                    resolve(items);
+                }
+            })
+                .catch((e) => {
+                    reject(e);
+                })
         })
     }
 }

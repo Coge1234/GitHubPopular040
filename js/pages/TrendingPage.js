@@ -32,7 +32,7 @@ var timeSpanTextArray = [
     new TimeSpan('今 天', 'since=daily'),
     new TimeSpan('本 周', 'since=weekly'),
     new TimeSpan('本 月', 'since=monthly')];
-var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_popular);
+var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_trending);
 var dataRepository = new DataRepository(FLAG_STORAGE.flag_trending);
 
 
@@ -160,6 +160,7 @@ class TrendingTab extends Component {
     constructor(props) {
         super(props);
         // 初始状态
+        this.isFavoriteChanged = false;
         this.state = {
             dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             isLoading: false,
@@ -168,12 +169,24 @@ class TrendingTab extends Component {
     }
 
     componentDidMount() {
+        this.listener = DeviceEventEmitter.addListener('favoriteChanged_trending', () => {
+            this.isFavoriteChanged = true;
+        });
         this.loadData(this.props.timeSpan, true);
+    }
+
+    componentWillUnmount() {
+        if (this.listener) {
+            this.listener.remove();
+        }
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.timeSpan !== this.props.timeSpan) {
             this.loadData(nextProps.timeSpan)
+        } else if (this.isFavoriteChanged) {
+            this.isFavoriteChanged = false;
+            this.getFavoriteKeys();
         }
     }
 
