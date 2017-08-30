@@ -11,180 +11,82 @@ import {
     View,
     AsyncStorage,
     ScrollView,
-    TouchableHighlight
+    TouchableHighlight,
+    Dimensions,
+    ListView,
+    PixelRatio,
+    Platform,
+    Linking
 } from 'react-native';
-import NavigationBar from '../../common/NavigationBar';
-import CustomKeyPage from './CustomKeyPage';
-import SortKeyPage from './SortKeyPage'
-import {FLAG_LANGUAGE} from '../../expand/dao/LanguageDao'
+import ViewUtils from '../../utils/ViewUtils'
 import {MORE_MENU} from '../../common/MoreMenu'
 import GlobalStyles from '../../../res/styles/GlobalStyles'
-import ViewUtils from '../../utils/ViewUtils'
-
-import ParallaxScrollView from 'react-native-parallax-scroll-view';
+import AboutCommon, {FLAG_ABOUT} from './AboutCommon'
+import WebViewPage from '../../pages/WebViewPage'
+import config from '../../../res/data/config.json'
 
 export default class AboutPage extends Component {
     constructor(props) {
         super(props);
-        this.state =  {
-            dataSource: new ListView.DataSource({
-                rowHasChanged: (r1, r2) => r1 !== r2
-            }).cloneWithRows([
-                'Simplicity Matters',
-                'Hammock Driven Development',
-                'Value of Values',
-                'Are We There Yet?',
-                'The Language of the System',
-                'Design, Composition, and Performance',
-                'Clojure core.async',
-                'The Functional Database',
-                'Deconstructing the Database',
-                'Hammock Driven Development',
-                'Value of Values'
-            ])
-        };
+        this.aboutCommon = new AboutCommon(props, (dic) => this.updateState(dic), FLAG_ABOUT.flag_about, config);
+        this.state = {
+            projectModels: [],
+        }
+    }
+
+    componentDidMount() {
+        this.aboutCommon.componentDidMount();
+    }
+    updateState(dic) {
+        this.setState(dic)
+    }
+
+    onClick(tab) {
+        let TargetComponent, params = {...this.props, menuType: tab};
+        switch (tab) {
+            case MORE_MENU.About_Author:
+
+                break;
+            case MORE_MENU.WebSite:
+                TargetComponent = WebViewPage;
+                params.url = 'http://www.devio.org/io/GitHubPopular/';
+                params.title = 'GitHubPopular';
+                break;
+            case MORE_MENU.Feedback:
+                var url = 'mailto://crazycodeboy.gmail.com';
+                Linking.canOpenURL(url).then(supported => {
+                    if (!supported) {
+                        console.log('Can\'t handle url: ' + url);
+                    } else {
+                        return Linking.openURL(url);
+                    }
+                }).catch(err => console.error('An error occurred', err));
+                break;
+        }
+        if (TargetComponent) {
+            this.props.navigator.push({
+                component: TargetComponent,
+                params: params
+
+            })
+        }
     }
 
     render() {
-        const { onScroll = () => {} } = this.props;
-        return (
-            <ListView
-                ref="ListView"
-                style={styles.container}
-                dataSource={ this.state.dataSource }
-                renderRow={(rowData) => (
-                    <View key={rowData} style={ styles.row }>
-                        <Text style={ styles.rowText }>
-                            { rowData }
-                        </Text>
-                    </View>
-                )}
-                renderScrollComponent={props => (
-                    <ParallaxScrollView
-                        onScroll={onScroll}
-
-                        headerBackgroundColor="#333"
-                        stickyHeaderHeight={ STICKY_HEADER_HEIGHT }
-                        parallaxHeaderHeight={ PARALLAX_HEADER_HEIGHT }
-                        backgroundSpeed={10}
-
-                        renderBackground={() => (
-                            <View key="background">
-                                <Image source={{uri: 'https://i.ytimg.com/vi/P-NZei5ANaQ/maxresdefault.jpg',
-                                    width: window.width,
-                                    height: PARALLAX_HEADER_HEIGHT}}/>
-                                <View style={{position: 'absolute',
-                                    top: 0,
-                                    width: window.width,
-                                    backgroundColor: 'rgba(0,0,0,.4)',
-                                    height: PARALLAX_HEADER_HEIGHT}}/>
-                            </View>
-                        )}
-
-                        renderForeground={() => (
-                            <View key="parallax-header" style={ styles.parallaxHeader }>
-                                <Image style={ styles.avatar } source={{
-                                    uri: 'https://pbs.twimg.com/profile_images/2694242404/5b0619220a92d391534b0cd89bf5adc1_400x400.jpeg',
-                                    width: AVATAR_SIZE,
-                                    height: AVATAR_SIZE
-                                }}/>
-                                <Text style={ styles.sectionSpeakerText }>
-                                    Talks by Rich Hickey
-                                </Text>
-                                <Text style={ styles.sectionTitleText }>
-                                    CTO of Cognitec, Creator of Clojure
-                                </Text>
-                            </View>
-                        )}
-
-                        renderStickyHeader={() => (
-                            <View key="sticky-header" style={styles.stickySection}>
-                                <Text style={styles.stickySectionText}>Rich Hickey Talks</Text>
-                            </View>
-                        )}
-
-                        renderFixedHeader={() => (
-                            <View key="fixed-header" style={styles.fixedSection}>
-                                <Text style={styles.fixedSectionText}
-                                      onPress={() => this.refs.ListView.scrollTo({ x: 0, y: 0 })}>
-                                    Scroll to top
-                                </Text>
-                            </View>
-                        )}/>
-                )}
-            />
-        );
+        let content = <View>
+            {this.aboutCommon.renderRepository(this.state.projectModels)}
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.WebSite), require('../../../res/images/ic_computer.png'), MORE_MENU.WebSite, {tintColor: '#2196F3'}, null)}
+            <View style={GlobalStyles.line}/>
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.About_Author), require('../my/images/ic_insert_emoticon.png'), MORE_MENU.About_Author, {tintColor: '#2196F3'}, null)}
+            <View style={GlobalStyles.line}/>
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.Feedback), require('../../../res/images/ic_feedback.png'), MORE_MENU.Feedback, {tintColor: '#2196F3'}, null)}
+            <View style={GlobalStyles.line}/>
+        </View>;
+        return this.aboutCommon.render(content, {
+            'name': 'GitHub Popular',
+            'description': '这是一个用来查看GitHub最受欢迎与最热项目的App,它基于React Native支持Android和iOS双平台。',
+            'avatar': 'http://ww1.sinaimg.cn/mw690/6e32efe4gw1ejdw8vtqczj20dc0dcjsk.jpg',
+            'backgroundImg': 'http://ww3.sinaimg.cn/mw690/6e32efe4jw1fao8jlc1f3j21kw16448s.jpg'
+        });
     }
 }
-
-const window = Dimensions.get('window');
-
-const AVATAR_SIZE = 120;
-const ROW_HEIGHT = 60;
-const PARALLAX_HEADER_HEIGHT = 350;
-const STICKY_HEADER_HEIGHT = 70;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'black'
-    },
-    background: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: window.width,
-        height: PARALLAX_HEADER_HEIGHT
-    },
-    stickySection: {
-        height: STICKY_HEADER_HEIGHT,
-        width: 300,
-        justifyContent: 'flex-end'
-    },
-    stickySectionText: {
-        color: 'white',
-        fontSize: 20,
-        margin: 10
-    },
-    fixedSection: {
-        position: 'absolute',
-        bottom: 10,
-        right: 10
-    },
-    fixedSectionText: {
-        color: '#999',
-        fontSize: 20
-    },
-    parallaxHeader: {
-        alignItems: 'center',
-        flex: 1,
-        flexDirection: 'column',
-        paddingTop: 100
-    },
-    avatar: {
-        marginBottom: 10,
-        borderRadius: AVATAR_SIZE / 2
-    },
-    sectionSpeakerText: {
-        color: 'white',
-        fontSize: 24,
-        paddingVertical: 5
-    },
-    sectionTitleText: {
-        color: 'white',
-        fontSize: 18,
-        paddingVertical: 5
-    },
-    row: {
-        overflow: 'hidden',
-        paddingHorizontal: 10,
-        height: ROW_HEIGHT,
-        backgroundColor: 'white',
-        borderColor: '#ccc',
-        borderBottomWidth: 1,
-        justifyContent: 'center'
-    },
-    rowText: {
-        fontSize: 20
-    }
-});

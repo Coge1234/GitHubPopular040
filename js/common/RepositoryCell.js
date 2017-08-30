@@ -55,13 +55,12 @@ export default class RepositoryCell extends Component {
                 source={this.state.favoriteIcon}/>
         </TouchableOpacity> : null;
         return <TouchableOpacity
-            onPress={this.props.onSelect}
-            style={styles.container}>
+            onPress={this.props.onSelect}>
             <View style={styles.cell_container}>
                 <Text style={styles.title}>{item.full_name}</Text>
                 <Text style={styles.description}>{item.description}</Text>
-                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                <View style={styles.row}>
+                    <View style={styles.row}>
                         <Text>Author:</Text>
                         <Image
                             style={{height: 22, width: 22}}
@@ -80,8 +79,10 @@ export default class RepositoryCell extends Component {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1
+    row: {
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     title: {
         fontSize: 16,

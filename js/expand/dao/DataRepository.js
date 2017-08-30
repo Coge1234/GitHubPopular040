@@ -5,7 +5,10 @@ import {
     AsyncStorage
 } from 'react-native';
 import GitHubTrending from 'GitHubTrending'
-export var FLAG_STORAGE = {flag_popular: 'popular', flag_trending: 'trending'};
+
+export var FLAG_STORAGE = {flag_popular: 'popular', flag_trending: 'trending',
+    flag_my: 'my'
+};
 export default class DataRepository {
     // 构造
     constructor(flag) {
@@ -13,29 +16,40 @@ export default class DataRepository {
         if (flag === FLAG_STORAGE.flag_trending) this.trending = new GitHubTrending();
     }
 
+    saveResponsitory(url, items, callBack) {
+        if (!url || !items) return;
+        let wrapData;
+        if (this.flag === FLAG_STORAGE.flag_my) {
+            wrapData = {item: items, update_date: new Date().getTime()};
+        } else {
+            wrapData = {items: items, update_date: new Date().getTime()};
+        }
+        AsyncStorage.setItem(url, JSON.stringify(wrapData), callBack);
+    }
+
     fetchRepository(url) {
-        return new Promise((resolve, reject)=> {
+        return new Promise((resolve, reject) => {
             //获取本地数据
             this.fetchLocalRepository(url)
-                .then(result=> {
+                .then(result => {
                     if (result) {
-                        resolve(result);
+                        resolve(result, true);
                     } else {
                         this.fetchNetRepository(url)
-                            .then(result=> {
+                            .then(result => {
                                 resolve(result)
                             })
-                            .catch(e=> {
-                                resolve(e);
+                            .catch(e => {
+                                reject(e);
                             })
                     }
                 })
-                .catch(e=> {
+                .catch(e => {
                     this.fetchNetRepository(url)
-                        .then(result=> {
+                        .then(result => {
                             resolve(result)
                         })
-                        .catch(e=> {
+                        .catch(e => {
                             resolve(e);
                         })
                 })
@@ -49,8 +63,8 @@ export default class DataRepository {
      * @returns {Promise}
      */
     fetchLocalRepository(url) {
-        return new Promise((resolve, reject)=> {
-            AsyncStorage.getItem(url, (error, result)=> {
+        return new Promise((resolve, reject) => {
+            AsyncStorage.getItem(url, (error, result) => {
                 if (!error) {
                     try {
                         resolve(JSON.parse(result));
@@ -65,54 +79,43 @@ export default class DataRepository {
     }
 
     fetchNetRepository(url) {
-        return new Promise((resolve, reject)=> {
-            if (this.flag === FLAG_STORAGE.flag_trending) {
+        return new Promise((resolve, reject) => {
+            if (this.flag !== FLAG_STORAGE.flag_trending) {
+                fetch(url)
+                    .then(response => response.json())
+                    .catch((error)=> {
+                        reject(error);
+                    })
+                    .then((result) => {
+                        // if (!result || !result.items) {
+                        //     reject(new Error('responseData is null'));
+                        //     return;
+                        // }
+                        // resolve(result.items);
+                        // this.saveResponsitory(url, result.items);
+                        if (this.flag === FLAG_STORAGE.flag_my && result) {
+                            this.saveResponsitory(url, result);
+                            resolve(result);
+                        } else if (result && result.items) {
+                            this.saveResponsitory(url, result.items);
+                            resolve(result.items);
+                        } else {
+                            reject(new Error('responseData is null'));
+                        }
+                    });
+            } else {
                 this.trending.fetchTrending(url)
-                    .then(result => {
+                    .then((result) => {
                         if (!result) {
                             reject(new Error('responseData is null'))
                             return;
                         }
-                        this.saveResponsitory(url, result);
                         resolve(result);
-                    })
-            } else {
-                fetch(url)
-                    .then(response=>response.json())
-                    .then(result=> {
-                        if (!result) {
-                            reject(new Error('responseData is null'));
-                            return;
-                        }
-                        resolve(result.items);
-                        this.saveResponsitory(url, result.items);
-                    })
-                    .catch(error=> {
-                        reject(error);
-                    })
-                    .done();
+                        this.saveResponsitory(url, result);
+                    }).catch((error)=>{
+                    reject(error);
+                })
             }
         })
-    }
-
-    saveResponsitory(url, items, callBack) {
-        if (!url || !items) return;
-        let wrapData = {items: items, update_date: new Date().getTime()};
-        AsyncStorage.setItem(url, JSON.stringify(wrapData), callBack);
-    }
-
-    /**
-     * 判断数据是否过时
-     * @param longTime 数据的时间戳
-     * @returns {boolean}
-     */
-    checkData(longTime) {
-        let cDate = new Date();
-        let tDate = new Date();
-        tDate.setTime(longTime);
-        if (cDate.getMonth() !== tDate.getMonth())return false;
-        if (cDate.getDate() !== tDate.getDate())return false;
-        if (cDate.getHours() - tDate.getHours() > 4)return false;
-        return true;
     }
 }
