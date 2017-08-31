@@ -23,6 +23,7 @@ import TrendingCell from '../common/TrendingCell'
 import ProjectModel from '../model/ProjectModel'
 import FavoriteDao from '../expand/dao/FavoriteDao'
 import ArrayUtils from '../utils/ArrayUtils'
+import ActionUtils from '../utils/ActionUtils'
 
 export default class FavoritePage extends Component {
     // 构造
@@ -117,18 +118,6 @@ class FavoriteTab extends Component {
         return this.state.dataSource.cloneWithRows(items);
     }
 
-    onSelect(projectModel) {
-        this.props.navigator.push({
-            title: projectModel.item.full_name,
-            component: RepositoryDetail,
-            params: {
-                projectModel: projectModel,
-                flag: FLAG_STORAGE.flag_popular,
-                ...this.props
-            }
-        })
-    }
-
     /**
      * favoriteIcon的单击回调方法
      * @param item
@@ -157,7 +146,11 @@ class FavoriteTab extends Component {
             key={this.props.flag === FLAG_STORAGE.flag_popular ? projectModel.item.id
                 : projectModel.item.fullName}
             projectModel={projectModel}
-            onSelect={() => this.onSelect(projectModel)}
+            onSelect={() => ActionUtils.onSelect({
+                projectModel: projectModel,
+                flag: this.props.flag,
+                ...this.props
+            })}
             onFavorite={(item, isFavorite) => this.onFavorite(item, isFavorite)}
         />
     }

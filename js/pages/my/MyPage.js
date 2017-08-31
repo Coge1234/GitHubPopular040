@@ -21,6 +21,7 @@ import {MORE_MENU} from '../../common/MoreMenu'
 import GlobalStyles from '../../../res/styles/GlobalStyles'
 import ViewUtils from '../../utils/ViewUtils'
 import AboutPage from '../about/AboutPage'
+import AboutMePage from '../about/AboutMePage'
 
 export default class MyPage extends Component {
     // 构造
@@ -58,7 +59,7 @@ export default class MyPage extends Component {
 
                 break;
             case MORE_MENU.About_Author:
-
+                TargetComponent = AboutMePage;
                 break;
             case MORE_MENU.About:
                 TargetComponent = AboutPage;

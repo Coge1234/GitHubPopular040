@@ -24,6 +24,7 @@ import GlobalStyles from '../../../res/styles/GlobalStyles'
 import AboutCommon, {FLAG_ABOUT} from './AboutCommon'
 import WebViewPage from '../../pages/WebViewPage'
 import config from '../../../res/data/config.json'
+import AboutMePage from './AboutMePage'
 
 export default class AboutPage extends Component {
     constructor(props) {
@@ -45,7 +46,7 @@ export default class AboutPage extends Component {
         let TargetComponent, params = {...this.props, menuType: tab};
         switch (tab) {
             case MORE_MENU.About_Author:
-
+                TargetComponent=AboutMePage;
                 break;
             case MORE_MENU.WebSite:
                 TargetComponent = WebViewPage;
@@ -53,7 +54,7 @@ export default class AboutPage extends Component {
                 params.title = 'GitHubPopular';
                 break;
             case MORE_MENU.Feedback:
-                var url = 'mailto://crazycodeboy.gmail.com';
+                var url = 'mailto://crazycodeboy@gmail.com';
                 Linking.canOpenURL(url).then(supported => {
                     if (!supported) {
                         console.log('Can\'t handle url: ' + url);
@@ -85,8 +86,8 @@ export default class AboutPage extends Component {
         return this.aboutCommon.render(content, {
             'name': 'GitHub Popular',
             'description': '这是一个用来查看GitHub最受欢迎与最热项目的App,它基于React Native支持Android和iOS双平台。',
-            'avatar': 'http://ww1.sinaimg.cn/mw690/6e32efe4gw1ejdw8vtqczj20dc0dcjsk.jpg',
-            'backgroundImg': 'http://ww3.sinaimg.cn/mw690/6e32efe4jw1fao8jlc1f3j21kw16448s.jpg'
+            'avatar': config.author.avatar1,
+            'backgroundImg': config.author.backgroundImg1
         });
     }
 }

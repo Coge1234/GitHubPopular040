@@ -21,6 +21,7 @@ import GlobalStyles from '../../../res/styles/GlobalStyles'
 import RepositoryCell from '../../common/RepositoryCell'
 import RepositoryDetail from '../../pages/RepositoryDetail'
 import RepositoryUtils from '../../expand/dao/RepositoryUtils'
+import ActionUtils from '../../utils/ActionUtils'
 
 export var FLAG_ABOUT = {flag_about: 'about', flag_about_me: 'about_me'};
 
@@ -70,7 +71,7 @@ export default class AboutCommon {
         let projectModels = [];
         for (var i = 0, len = this.repositories.length; i < len; i++) {
             var data = this.repositories[i];
-            var item=data.item?data.item:data;
+            var item = data.item ? data.item : data;
             projectModels.push({
                 isFavorite: Utils.checkFavorite(item, this.favoriteKeys ? this.favoriteKeys : []),
                 item: item,
@@ -81,30 +82,6 @@ export default class AboutCommon {
         })
     }
 
-    onSelect(projectModel) {
-        this.props.navigator.push({
-            title: projectModel.item.full_name,
-            component: RepositoryDetail,
-            params: {
-                projectModel: projectModel,
-                flag: FLAG_STORAGE.flag_popular,
-                ...this.props
-            }
-        })
-    }
-
-    /**
-     * favoriteIcon的单击回调方法
-     * @param item
-     * @param isFavorite
-     */
-    onFavorite(item, isFavorite) {
-        if (isFavorite) {
-            this.favoriteDao.saveFavoriteItem(item.id.toString(), JSON.stringify(item))
-        } else {
-            this.favoriteDao.removeFavoriteItem(item.id.toString());
-        }
-    }
 
     /**
      * 创建项目视图
@@ -119,9 +96,13 @@ export default class AboutCommon {
             views.push(
                 <RepositoryCell
                     key={projectModel.item.id}
+                    onSelect={() => ActionUtils.onSelect({
+                        projectModel: projectModel,
+                        ...this.props,
+                        flag: FLAG_STORAGE.flag_popular
+                    })}
                     projectModel={projectModel}
-                    onSelect={() => this.onSelect(projectModel)}
-                    onFavorite={(item, isFavorite) => this.onFavorite(item, isFavorite)}
+                    onFavorite={(item, isFavorite) => ActionUtils.onFavorite(this.favoriteDao, item, isFavorite, FLAG_STORAGE.flag_popular)}
                 />
             )
         }

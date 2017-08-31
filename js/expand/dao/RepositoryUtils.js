@@ -7,12 +7,13 @@ import {
 import Utils from '../../utils/Utils'
 import DataRepository, {FLAG_STORAGE} from '../../expand/dao/DataRepository'
 
-var itemMap = new Map();
+
 
 export default class RepositoryUtils {
     constructor(aboutCommon) {
-        this.aboutComon = aboutCommon;
+        this.aboutCommon = aboutCommon;
         this.dataRepository = new DataRepository(FLAG_STORAGE.flag_my)
+        this.itemMap = new Map();
     }
 
     /**
@@ -21,12 +22,12 @@ export default class RepositoryUtils {
      * @param v
      */
     updateData(k, v) {
-        itemMap.set(k, v);
+        this.itemMap.set(k, v);
         var arr = [];
-        for (var value of itemMap.values()) {
+        for (var value of this.itemMap.values()) {
             arr.push(value);
         }
-        this.aboutComon.onNotifyDataChanged(arr);
+        this.aboutCommon.onNotifyDataChanged(arr);
     }
 
     /**

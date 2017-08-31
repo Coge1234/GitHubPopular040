@@ -26,6 +26,7 @@ import FavoriteDao from '../expand/dao/FavoriteDao'
 import TimeSpan from '../model/TimeSpan'
 import Popover from '../common/Popover'
 import Utils from '../utils/Utils'
+import ActionUtils from '../utils/ActionUtils'
 
 const API_URL = 'https://github.com/trending/';
 var timeSpanTextArray = [
@@ -262,33 +263,6 @@ class TrendingTab extends Component {
         this.setState(dic)
     }
 
-    onSelect(projectModel) {
-        var item = projectModel.item;
-        this.props.navigator.push({
-            title: item.fullName,
-            component: RepositoryDetail,
-            params: {
-                projectModel: projectModel,
-                parentComponent: this,
-                flag: FLAG_STORAGE.flag_trending,
-                ...this.props
-            }
-        })
-    }
-
-    /**
-     * favoriteIcon的单击回调方法
-     * @param item
-     * @param isFavorite
-     */
-    onFavorite(item, isFavorite) {
-        if (isFavorite) {
-            favoriteDao.saveFavoriteItem(item.fullName, JSON.stringify(item))
-        } else {
-            favoriteDao.removeFavoriteItem(item.fullName);
-        }
-    }
-
     genFetchUrl(timeSpan, category) {
         return API_URL + category + '?' + timeSpan.searchText;
     }
@@ -297,8 +271,12 @@ class TrendingTab extends Component {
         return <TrendingCell
             key={projectModel.item.fullName}
             projectModel={projectModel}
-            onSelect={() => this.onSelect(projectModel)}
-            onFavorite = {(item, isFavorite)=>this.onFavorite(item, isFavorite)}
+            onSelect={() => ActionUtils.onSelect({
+                projectModel: projectModel,
+                flag: FLAG_STORAGE.flag_trending,
+                ...this.props,
+            })}
+            onFavorite = {(item, isFavorite)=>ActionUtils.onFavorite(favoriteDao, item, isFavorite, FLAG_STORAGE.flag_trending)}
         />
     }
 
