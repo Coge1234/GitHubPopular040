@@ -12,7 +12,8 @@ import {
     TextInput,
     ListView,
     RefreshControl,
-    DeviceEventEmitter
+    DeviceEventEmitter,
+    TouchableOpacity
 } from 'react-native';
 import RepositoryDetail from './RepositoryDetail'
 import ScrollableTabView, {ScrollableTabBar} from 'react-native-scrollable-tab-view'
@@ -23,11 +24,13 @@ import LanguageDao, {FLAG_LANGUAGE} from '../expand/dao/LanguageDao'
 import ProjectModel from '../model/ProjectModel'
 import FavoriteDao from '../expand/dao/FavoriteDao'
 import Utils from '../utils/Utils'
+import ActionUtils from '../utils/ActionUtils'
+import SearchPage from './SearchPage'
+import WebViewTest from '../../WebViewTest'
 
 const URL = 'https://api.github.com/search/repositories?q=';
 const QUERY_STAR = '&sort=stars';
 var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_popular);
-import ActionUtils from '../utils/ActionUtils'
 
 export default class PopularPage extends Component {
     // 构造
@@ -54,7 +57,37 @@ export default class PopularPage extends Component {
             })
     }
 
+    renderRightButton() {
+        return <View>
+            <TouchableOpacity
+                un
+                onPress={() => {
+                    this.props.navigator.push({
+                        component: SearchPage,
+                        params: {
+                            ...this.props
+                        }
+                    })
+                }}
+            >
+                <View style={{padding:5, marginRight:8}}>
+                    <Image
+                        style={{width:24, height:24}}
+                        source={require('../../res/images/ic_search_white_48pt.png')}
+                    />
+                </View>
+            </TouchableOpacity>
+        </View>
+    }
+
     render() {
+        let navigationBar = <NavigationBar
+            title={'最热'}
+            statusBar={{
+                backgroundColor: '#2196F3'
+            }}
+            rightButton={this.renderRightButton()}
+        />;
         let content = this.state.languages.length > 0 ?
             <ScrollableTabView
                 tabBarBackgroundColor="#2196F3"
@@ -69,12 +102,7 @@ export default class PopularPage extends Component {
                 })}
             </ScrollableTabView> : null;
         return <View style={styles.container}>
-            <NavigationBar
-                title={'最热'}
-                statusBar={{
-                    backgroundColor: '#2196F3'
-                }}
-            />
+            {navigationBar}
             {content}
         </View>
     }

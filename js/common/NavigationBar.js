@@ -10,6 +10,7 @@ import {
     Platform,
     StyleSheet
 } from 'react-native';
+
 const NAV_BAR_HEIGHT_ANDROID = 50;
 const NAV_BAR_HEIGHT_IOS = 44;
 const STATUS_BAR_HEIGHT = 20;
@@ -24,19 +25,21 @@ export default class NavigationBar extends Component {
         style: View.propTypes.style,
         title: PropTypes.string,
         titleView: PropTypes.element,
+        titleLayoutStyle: View.propTypes.style,
         hide: PropTypes.bool,
         leftButton: PropTypes.element,
         rightButton: PropTypes.element,
         statusBar: PropTypes.shape(StatusBarShape)
-    }
+    };
     static defaultProps = {
         statusBar: {
             barStyle: 'light-content',
             title: '',
             hidden: false,
-            backgroundColor:'#2196F3'
+            backgroundColor: '#2196F3'
         }
-    }
+    };
+
     // 构造
     constructor(props) {
         super(props);
@@ -47,23 +50,34 @@ export default class NavigationBar extends Component {
         };
     }
 
-    render() {
-        let status = <View style={[styles.statusBar, this.props.statusBar]}>
-            <StatusBar {...this.props.statusBar}/>
-        </View>
-        let titleView = this.props.titleView ? this.props.titleView :
-            <Text style={styles.title}>{this.props.title}</Text>
-        let content = <View style={styles.navBar}>
-            {this.props.leftButton}
-            <View style={styles.titleViewContainer}>
-                {titleView}
+    getButtonElement(data) {
+        return (
+            <View style={styles.navBarButton}>
+                {data ? data : null}
             </View>
+        );
+    }
 
-            {this.props.rightButton}
-        </View>
+    render() {
+        let statusBar = !this.props.statusBar.hidden ?
+            <View style={styles.statusBar}>
+                <StatusBar {...this.props.statusBar} />
+            </View> : null;
+
+        let titleView = this.props.titleView ? this.props.titleView :
+            <Text style={styles.title}>{this.props.title}</Text>;
+
+        let content = this.props.hide ? null :
+            <View style={styles.navBar}>
+                {this.getButtonElement(this.props.leftButton)}
+                <View style={[styles.navBarTitleContainer, this.props.titleLayoutStyle]}>
+                    {titleView}
+                </View>
+                {this.getButtonElement(this.props.rightButton)}
+            </View>
         return (
             <View style={[styles.container, this.props.style]}>
-                {status}
+                {statusBar}
                 {content}
             </View>
         )
@@ -74,14 +88,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#2196F3'
     },
     navBar: {
+        flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         height: Platform.OS === 'ios' ? NAV_BAR_HEIGHT_IOS : NAV_BAR_HEIGHT_ANDROID,
-        flexDirection: 'row'
     },
-    titleViewContainer: {
-        justifyContent: 'center',
+    navBarTitleContainer: {
         alignItems: 'center',
+        justifyContent: 'center',
         position: 'absolute',
         left: 40,
         right: 40,
@@ -91,6 +105,9 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         color: 'white'
+    },
+    navBarButton: {
+        alignItems: 'center',
     },
     statusBar: {
         height: Platform.OS === 'ios' ? STATUS_BAR_HEIGHT : 0,
