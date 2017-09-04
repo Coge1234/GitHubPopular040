@@ -24,9 +24,12 @@ import LanguageDao, {FLAG_LANGUAGE} from '../expand/dao/LanguageDao'
 import ProjectModel from '../model/ProjectModel'
 import FavoriteDao from '../expand/dao/FavoriteDao'
 import Utils from '../utils/Utils'
+import ViewUtils from '../utils/ViewUtils'
 import ActionUtils from '../utils/ActionUtils'
 import SearchPage from './SearchPage'
 import WebViewTest from '../../WebViewTest'
+import MoreMenu, {MORE_MENU} from '../common/MoreMenu'
+import {FLAG_TAB} from './HomePage'
 
 const URL = 'https://api.github.com/search/repositories?q=';
 const QUERY_STAR = '&sort=stars';
@@ -58,9 +61,8 @@ export default class PopularPage extends Component {
     }
 
     renderRightButton() {
-        return <View>
+        return <View style={{flexDirection: 'row'}}>
             <TouchableOpacity
-                un
                 onPress={() => {
                     this.props.navigator.push({
                         component: SearchPage,
@@ -70,14 +72,26 @@ export default class PopularPage extends Component {
                     })
                 }}
             >
-                <View style={{padding:5, marginRight:8}}>
+                <View style={{padding: 5, marginRight: 8}}>
                     <Image
-                        style={{width:24, height:24}}
+                        style={{width: 24, height: 24}}
                         source={require('../../res/images/ic_search_white_48pt.png')}
                     />
                 </View>
             </TouchableOpacity>
+            {ViewUtils.getMoreButton(() => this.refs.moreMenu.open())}
         </View>
+    }
+
+    renderMoreView() {
+        let params = {...this.props, fromPage: FLAG_TAB.flag_popularTab};
+        return <MoreMenu
+            ref="moreMenu"
+            {...params}
+            menus={[MORE_MENU.Custom_Key, MORE_MENU.Sort_Key, MORE_MENU.Remove_Key, MORE_MENU.Share, MORE_MENU.Custom_Theme,
+                MORE_MENU.About_Author, MORE_MENU.About]}
+            anchorView={() => this.refs.moreMenuButton}
+        />
     }
 
     render() {
@@ -104,6 +118,7 @@ export default class PopularPage extends Component {
         return <View style={styles.container}>
             {navigationBar}
             {content}
+            {this.renderMoreView()}
         </View>
     }
 }

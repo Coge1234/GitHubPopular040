@@ -18,22 +18,56 @@ import FavoritePage from './FavoritePage'
 import AsyncStoreTest from '../../AsyncStorageTest';
 import WebViewTest from '../../WebViewTest'
 import MyPage from './my/MyPage'
-import Toast, {DURATION}from 'react-native-easy-toast'
+import Toast, {DURATION} from 'react-native-easy-toast'
 import TrendingPage from './TrendingPage'
 
+export const ACTION_HOME = {A_SHOW_SHOAST: 'showToast', A_RESTART: 'restart'};
+export const FLAG_TAB = {
+    flag_popularTab: 'tb_popular',
+    flag_trendingTab: 'tb_trending',
+    flag_favoriteTab: 'tb_favorite',
+    flag_myTab: 'tb_my',
+};
 export default class HomePage extends Component {
     // 构造
     constructor(props) {
         super(props);
         // 初始状态
+        let selectedTab = this.props.selectedTab ? this.props.selectedTab : 'tb_popular';
         this.state = {
             selectedTab: 'tb_popular',
         }
     }
 
     componentDidMount() {
-        this.listener=DeviceEventEmitter.addListener('showToast', (text)=>{
-            this.toast.show(text, DURATION.LENGTH_SHORT);
+        this.listener = DeviceEventEmitter.addListener('ACTION_HOME',
+            (action, params) => this.onAction(action, params));
+    }
+
+    /**
+     * 通知回调事件处理
+     * @param action
+     * @param params
+     */
+    onAction(action, params) {
+        if (ACTION_HOME.A_RESTART === action) {
+            this.onRestart(params)
+        } else if (ACTION_HOME.A_SHOW_SHOAST === action) {
+            this.toast.show(params.text, DURATION.LENGTH_SHORT);
+        }
+    }
+
+    /**
+     * 重启首页
+     * @param jumpToTab 默认显示的页面
+     */
+    onRestart(jumpToTab) {
+        this.props.navigator.resetTo({
+            component: HomePage,
+            params: {
+                ...this.props,
+                selectedTab: jumpToTab
+            }
         })
     }
 
@@ -44,13 +78,13 @@ export default class HomePage extends Component {
     _renderTab(Component, selectTab, title, renderIcon) {
         return <TabNavigator.Item
             selected={this.state.selectedTab === selectTab}
-            title= {title}
-            selectedTitleStyle={{color:'#2196F3'}}
-            renderIcon={()=> <Image style={styles.image}
-                                    source={renderIcon}/>}
-            renderSelectedIcon={()=> <Image style={[styles.image, {tintColor:'#2196F3'}]}
-                                            source={renderIcon}/>}
-            onPress={()=> this.setState({selectedTab : selectTab})}>
+            title={title}
+            selectedTitleStyle={{color: '#2196F3'}}
+            renderIcon={() => <Image style={styles.image}
+                                     source={renderIcon}/>}
+            renderSelectedIcon={() => <Image style={[styles.image, {tintColor: '#2196F3'}]}
+                                             source={renderIcon}/>}
+            onPress={() => this.setState({selectedTab: selectTab})}>
             <Component {...this.props}/>
         </TabNavigator.Item>
     }
@@ -64,7 +98,7 @@ export default class HomePage extends Component {
                     {this._renderTab(FavoritePage, 'tb_favorite', '收藏', require('../../res/images/ic_favorite.png'))}
                     {this._renderTab(MyPage, 'tb_my', '我的', require('../../res/images/ic_my.png'))}
                 </TabNavigator>
-                <Toast ref={toast=>this.toast=toast}/>
+                <Toast ref={toast => this.toast = toast}/>
             </View>
         );
     }

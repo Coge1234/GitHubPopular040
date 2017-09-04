@@ -48,7 +48,7 @@ export default class AboutPage extends Component {
             case MORE_MENU.About_Author:
                 TargetComponent=AboutMePage;
                 break;
-            case MORE_MENU.WebSite:
+            case MORE_MENU.Website:
                 TargetComponent = WebViewPage;
                 params.url = 'http://www.devio.org/io/GitHubPopular/';
                 params.title = 'GitHubPopular';
@@ -76,7 +76,7 @@ export default class AboutPage extends Component {
     render() {
         let content = <View>
             {this.aboutCommon.renderRepository(this.state.projectModels)}
-            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.WebSite), require('../../../res/images/ic_computer.png'), MORE_MENU.WebSite, {tintColor: '#2196F3'}, null)}
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.Website), require('../../../res/images/ic_computer.png'), MORE_MENU.Website, {tintColor: '#2196F3'}, null)}
             <View style={GlobalStyles.line}/>
             {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.About_Author), require('../my/images/ic_insert_emoticon.png'), MORE_MENU.About_Author, {tintColor: '#2196F3'}, null)}
             <View style={GlobalStyles.line}/>

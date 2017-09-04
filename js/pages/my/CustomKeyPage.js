@@ -11,13 +11,15 @@ import {
     View,
     TouchableOpacity,
     ScrollView,
-    Alert
+    Alert,
+    DeviceEventEmitter
 } from 'react-native';
 import NavigationBar from '../../common/NavigationBar';
 import ViewUtils from '../../utils/ViewUtils';
 import LanguageDao, {FLAG_LANGUAGE}from '../../expand/dao/LanguageDao';
 import CheckBox from 'react-native-check-box';
 import ArrayUtils from '../../utils/ArrayUtils'
+import {ACTION_HOME, FLAG_TAB} from "../HomePage";
 
 export default class CustomKeyPage extends Component {
     // 构造
@@ -59,6 +61,8 @@ export default class CustomKeyPage extends Component {
             }
         }
         this.languageDao.save(this.state.dataArray);
+        var jumpToTab = this.props.flag === FLAG_LANGUAGE.flag_key ? FLAG_TAB.flag_popularTab : FLAG_TAB.flag_trendingTab;
+        DeviceEventEmitter.emit('ACTION_HOME', ACTION_HOME.A_RESTART, jumpToTab);
         this.props.navigator.pop();
     }
 

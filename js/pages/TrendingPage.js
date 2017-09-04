@@ -100,9 +100,9 @@ export default class TrendingPage extends Component {
     }
 
     onSelectTimeSpan(timeSpan) {
+        this.closePopover();
         this.setState({
             timeSpan: timeSpan,
-            isVisible: false
         })
     }
 
