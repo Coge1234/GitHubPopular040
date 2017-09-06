@@ -30,12 +30,14 @@ import SearchPage from './SearchPage'
 import WebViewTest from '../../WebViewTest'
 import MoreMenu, {MORE_MENU} from '../common/MoreMenu'
 import {FLAG_TAB} from './HomePage'
+import BaseComponent from './BaseComponent'
+import CustomThemePage from './my/CustomTheme'
 
 const URL = 'https://api.github.com/search/repositories?q=';
 const QUERY_STAR = '&sort=stars';
 var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_popular);
 
-export default class PopularPage extends Component {
+export default class PopularPage extends BaseComponent {
     // 构造
     constructor(props) {
         super(props);
@@ -46,9 +48,6 @@ export default class PopularPage extends Component {
             theme: this.props.theme,
             customThemeViewVisible: false,
         };
-    }
-
-    componentDidMount() {
         this.loadData();
     }
 
@@ -95,7 +94,23 @@ export default class PopularPage extends Component {
             menus={[MORE_MENU.Custom_Key, MORE_MENU.Sort_Key, MORE_MENU.Remove_Key, MORE_MENU.Share, MORE_MENU.Custom_Theme,
                 MORE_MENU.About_Author, MORE_MENU.About]}
             anchorView={() => this.refs.moreMenuButton}
+            onMoreMenuSelect={(e) => {
+                if (e === MORE_MENU.Custom_Theme) {
+                    this.setState({
+                        customThemeViewVisible: true
+                    })
+                }
+            }}
+
         />
+    }
+
+    renderCustomThemeView() {
+        return (<CustomThemePage
+            visible={this.state.customThemeViewVisible}
+            {...this.props}
+            onClose={()=>this.setState({customThemeViewVisible: false})}
+        />)
     }
 
     render() {
@@ -129,6 +144,7 @@ export default class PopularPage extends Component {
             {navigationBar}
             {content}
             {this.renderMoreView()}
+            {this.renderCustomThemeView()}
         </View>
     }
 }
@@ -166,6 +182,9 @@ class PopularTab extends Component {
         if (this.isFavoriteChanged) {
             this.isFavoriteChanged = false;
             this.getFavoriteKeys();
+        } else if (nextProps.theme !== this.state.theme) {
+            this.updateState({theme: nextProps.theme});
+            this.flushFavoriteState();
         }
     }
 
@@ -241,7 +260,7 @@ class PopularTab extends Component {
         return <RepositoryCell
             key={projectModel.item.id}
             projectModel={projectModel}
-            theme = {this.props.theme}
+            theme={this.props.theme}
             onSelect={() => ActionUtils.onSelect({
                 projectModel: projectModel,
                 flag: FLAG_STORAGE.flag_popular,

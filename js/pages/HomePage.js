@@ -20,6 +20,7 @@ import WebViewTest from '../../WebViewTest'
 import MyPage from './my/MyPage'
 import Toast, {DURATION} from 'react-native-easy-toast'
 import TrendingPage from './TrendingPage'
+import BaseComponent from './BaseComponent'
 
 export const ACTION_HOME = {A_SHOW_TOAST: 'showToast', A_RESTART: 'restart', A_THEME: 'theme'};
 export const FLAG_TAB = {
@@ -28,7 +29,7 @@ export const FLAG_TAB = {
     flag_favoriteTab: 'tb_favorite',
     flag_myTab: 'tb_my',
 };
-export default class HomePage extends Component {
+export default class HomePage extends BaseComponent {
     // 构造
     constructor(props) {
         super(props);
@@ -41,6 +42,7 @@ export default class HomePage extends Component {
     }
 
     componentDidMount() {
+        super.componentDidMount();
         this.listener = DeviceEventEmitter.addListener('ACTION_HOME',
             (action, params) => this.onAction(action, params));
     }
@@ -73,7 +75,10 @@ export default class HomePage extends Component {
     }
 
     componentWillUnmount() {
-        this.listener && this.listener.remove();
+        super.componentWillUnmount();
+        if (this.listener) {
+            this.listener.remove();
+        }
     }
 
     _renderTab(Component, selectTab, title, renderIcon) {
@@ -86,7 +91,7 @@ export default class HomePage extends Component {
             renderSelectedIcon={() => <Image style={[styles.image, this.state.theme.styles.tabBarSelectedIcon]}
                                              source={renderIcon}/>}
             onPress={() => this.setState({selectedTab: selectTab})}>
-            <Component {...this.props}/>
+            <Component {...this.props} theme={this.state.theme}/>
         </TabNavigator.Item>
     }
 

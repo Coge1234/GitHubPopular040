@@ -78,7 +78,7 @@ export default class MoreMenu extends Component {
 
     onMoreMenuSelect(tab) {
         this.closePopover();
-        if(typeof(this.props.onMoreMenuSelect)=='function')this.props.onMoreMenuSelect(tab);
+        if (typeof(this.props.onMoreMenuSelect) == 'function') this.props.onMoreMenuSelect(tab);
         let TargetComponent, params = {...this.props, menuType: tab};
         switch (tab) {
             case MORE_MENU.Custom_Language:
@@ -91,7 +91,7 @@ export default class MoreMenu extends Component {
                 break;
             case MORE_MENU.Remove_Key:
                 TargetComponent = CustomKeyPage;
-                params.isRemoveKey=true;
+                params.isRemoveKey = true;
                 params.flag = FLAG_LANGUAGE.flag_key;
                 break;
             case MORE_MENU.Sort_Language:
@@ -112,7 +112,7 @@ export default class MoreMenu extends Component {
                 TargetComponent = AboutPage;
                 break;
             case MORE_MENU.Feedback:
-                var url='mailto://crazycodeboy@gmail.com';
+                var url = 'mailto://crazycodeboy@gmail.com';
                 Linking.canOpenURL(url).then(supported => {
                     if (!supported) {
                         console.log('Can\'t handle url: ' + url);
@@ -122,9 +122,11 @@ export default class MoreMenu extends Component {
                 }).catch(err => console.error('An error occurred', err));
                 break;
             case MORE_MENU.Share:
-                var shareApp=share.share_app;
+                var shareApp = share.share_app;
                 UShare.share(shareApp.title, shareApp.content,
-                    shareApp.imgUrl,shareApp.url,()=>{},()=>{});
+                    shareApp.imgUrl, shareApp.url, () => {
+                    }, () => {
+                    });
                 break;
         }
         if (TargetComponent) {
@@ -140,7 +142,7 @@ export default class MoreMenu extends Component {
             isVisible={this.state.isVisible}
             fromRect={this.state.buttonRect}
             placement="bottom"
-            contentMarginRight = {20}
+            contentMarginRight={20}
             onClose={() => this.closePopover()}
             contentStyle={{backgroundColor: '#343434', opacity: 0.82}}
             style={{backgroundColor: 'red'}}>

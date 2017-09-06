@@ -30,6 +30,8 @@ import {FLAG_TAB} from './HomePage'
 import MoreMenu, {MORE_MENU} from '../common/MoreMenu'
 import ActionUtils from '../utils/ActionUtils'
 import ViewUtils from '../utils/ViewUtils'
+import BaseComponent from './BaseComponent'
+import CustomThemePage from './my/CustomTheme'
 
 const API_URL = 'https://github.com/trending/';
 var timeSpanTextArray = [
@@ -40,7 +42,7 @@ var favoriteDao = new FavoriteDao(FLAG_STORAGE.flag_trending);
 var dataRepository = new DataRepository(FLAG_STORAGE.flag_trending);
 
 
-export default class TrendingPage extends Component {
+export default class TrendingPage extends BaseComponent {
     // 构造
     constructor(props) {
         super(props);
@@ -51,12 +53,10 @@ export default class TrendingPage extends Component {
             isVisible: false,
             buttonRect: {},
             timeSpan: timeSpanTextArray[0],
-            theme: this.props.theme
+            theme: this.props.theme,
+            customThemeViewVisible: false
         };
-    }
-
-    componentDidMount() {
-        this.loadData();
+        this.loadData()
     }
 
     loadData() {
@@ -79,6 +79,13 @@ export default class TrendingPage extends Component {
             menus={[MORE_MENU.Custom_Language, MORE_MENU.Sort_Language, MORE_MENU.Share, MORE_MENU.Custom_Theme,
                 MORE_MENU.About_Author, MORE_MENU.About]}
             anchorView={() => this.refs.moreMenuButton}
+            onMoreMenuSelect={(e) => {
+                if (e === MORE_MENU.Custom_Theme) {
+                    this.setState({
+                        customThemeViewVisible: true
+                    })
+                }
+            }}
         />
     }
 
@@ -119,6 +126,14 @@ export default class TrendingPage extends Component {
         this.setState({
             timeSpan: timeSpan,
         })
+    }
+
+    renderCustomThemeView() {
+        return (<CustomThemePage
+            visible={this.state.customThemeViewVisible}
+            {...this.props}
+            onClose={()=>this.setState({customThemeViewVisible: false})}
+        />)
     }
 
     render() {
@@ -176,6 +191,7 @@ export default class TrendingPage extends Component {
             {content}
             {timeSpanView}
             {this.renderMoreView()}
+            {this.renderCustomThemeView()}
         </View>
     }
 }
@@ -198,7 +214,7 @@ class TrendingTab extends Component {
         this.listener = DeviceEventEmitter.addListener('favoriteChanged_trending', () => {
             this.isFavoriteChanged = true;
         });
-        this.loadData(this.props.timeSpan, true);
+        this.loadData(this.props.timeSpan);
     }
 
     componentWillUnmount() {
@@ -213,11 +229,14 @@ class TrendingTab extends Component {
         } else if (this.isFavoriteChanged) {
             this.isFavoriteChanged = false;
             this.getFavoriteKeys();
+        } else if (nextProps.theme !== this.state.theme) {
+            this.updateState({theme: nextProps.theme});
+            this.flushFavoriteState();
         }
     }
 
     onRefresh() {
-        this.loadData(this.props.timeSpan)
+        this.loadData(this.props.timeSpan, true)
     }
 
     /**
@@ -266,7 +285,7 @@ class TrendingTab extends Component {
             .then(result => {
                 this.items = result && result.items ? result.items : result ? result : [];
                 this.getFavoriteKeys();
-                if (!this.items || result && result.update_date && !Utils.checkDate(result.update_date)) {
+                if (!this.items || isRefresh && result && result.update_date && !Utils.checkDate(result.update_date)) {
                     return dataRepository.fetchNetRepository(url);
                 }
             })

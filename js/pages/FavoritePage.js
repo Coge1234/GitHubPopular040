@@ -28,8 +28,9 @@ import ViewUtils from '../utils/ViewUtils'
 import {FLAG_TAB} from './HomePage'
 import MoreMenu, {MORE_MENU} from '../common/MoreMenu'
 import CustomThemePage from './my/CustomTheme'
+import BaseComponent from './BaseComponent'
 
-export default class FavoritePage extends Component {
+export default class FavoritePage extends BaseComponent {
     // 构造
     constructor(props) {
         super(props);
@@ -56,10 +57,6 @@ export default class FavoritePage extends Component {
                 }
             }}
         />
-    }
-
-    componentDidMount() {
-
     }
 
     renderCustomThemeView() {

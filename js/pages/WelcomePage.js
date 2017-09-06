@@ -21,7 +21,7 @@ export default class WelcomePage extends Component {
         super(props);
         // 初始状态
         this.state = {
-            theme: ThemeFactory.createTheme('#2196F3')
+            theme: ThemeFactory.createTheme('#fff')
         };
     }
 

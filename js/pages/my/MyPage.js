@@ -23,8 +23,9 @@ import ViewUtils from '../../utils/ViewUtils'
 import AboutPage from '../about/AboutPage'
 import AboutMePage from '../about/AboutMePage'
 import CustomThemePage from './CustomTheme'
+import BaseComponent from '../BaseComponent'
 
-export default class MyPage extends Component {
+export default class MyPage extends BaseComponent {
     // 构造
     constructor(props) {
         super(props);
@@ -98,7 +99,7 @@ export default class MyPage extends Component {
             <NavigationBar
                 statusBar={statusBar}
                 title={'我的'}
-                style={this.props.theme.styles.navBar}
+                style={this.state.theme.styles.navBar}
             />;
         return (
             <View style={GlobalStyles.root_container}>
