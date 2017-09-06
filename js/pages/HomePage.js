@@ -21,7 +21,7 @@ import MyPage from './my/MyPage'
 import Toast, {DURATION} from 'react-native-easy-toast'
 import TrendingPage from './TrendingPage'
 
-export const ACTION_HOME = {A_SHOW_SHOAST: 'showToast', A_RESTART: 'restart'};
+export const ACTION_HOME = {A_SHOW_TOAST: 'showToast', A_RESTART: 'restart', A_THEME: 'theme'};
 export const FLAG_TAB = {
     flag_popularTab: 'tb_popular',
     flag_trendingTab: 'tb_trending',
@@ -35,7 +35,8 @@ export default class HomePage extends Component {
         // 初始状态
         let selectedTab = this.props.selectedTab ? this.props.selectedTab : 'tb_popular';
         this.state = {
-            selectedTab: 'tb_popular',
+            selectedTab: selectedTab,
+            theme: this.props.theme,
         }
     }
 
@@ -52,7 +53,7 @@ export default class HomePage extends Component {
     onAction(action, params) {
         if (ACTION_HOME.A_RESTART === action) {
             this.onRestart(params)
-        } else if (ACTION_HOME.A_SHOW_SHOAST === action) {
+        } else if (ACTION_HOME.A_SHOW_TOAST === action) {
             this.toast.show(params.text, DURATION.LENGTH_SHORT);
         }
     }
@@ -79,10 +80,10 @@ export default class HomePage extends Component {
         return <TabNavigator.Item
             selected={this.state.selectedTab === selectTab}
             title={title}
-            selectedTitleStyle={{color: '#2196F3'}}
+            selectedTitleStyle={this.state.theme.styles.selectedTitleStyle}
             renderIcon={() => <Image style={styles.image}
                                      source={renderIcon}/>}
-            renderSelectedIcon={() => <Image style={[styles.image, {tintColor: '#2196F3'}]}
+            renderSelectedIcon={() => <Image style={[styles.image, this.state.theme.styles.tabBarSelectedIcon]}
                                              source={renderIcon}/>}
             onPress={() => this.setState({selectedTab: selectTab})}>
             <Component {...this.props}/>

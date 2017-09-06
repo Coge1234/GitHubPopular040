@@ -41,7 +41,11 @@ export default class PopularPage extends Component {
         super(props);
         // 初始状态
         this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
-        this.state = {languages: []};
+        this.state = {
+            languages: [],
+            theme: this.props.theme,
+            customThemeViewVisible: false,
+        };
     }
 
     componentDidMount() {
@@ -95,20 +99,26 @@ export default class PopularPage extends Component {
     }
 
     render() {
+        var statusBar = {
+            backgroundColor: this.state.theme.themeColor,
+            barStyle: 'light-content',
+        };
         let navigationBar = <NavigationBar
             title={'最热'}
-            statusBar={{
-                backgroundColor: '#2196F3'
-            }}
+            statusBar={statusBar}
+            style={this.state.theme.styles.navBar}
             rightButton={this.renderRightButton()}
         />;
         let content = this.state.languages.length > 0 ?
             <ScrollableTabView
-                tabBarBackgroundColor="#2196F3"
+                tabBarUnderlineStyle={{backgroundColor: '#e7e7e7', height: 2}}
                 tabBarInactiveTextColor="mintcream"
                 tabBarActiveTextColor="white"
-                tabBarUnderlineStyle={{backgroundColor: '#e7e7e7', height: 2}}
-                renderTabBar={() => <ScrollableTabBar/>}
+                ref="scrollableTabView"
+                tabBarBackgroundColor={this.state.theme.themeColor}
+                initialPage={0}
+                renderTabBar={() => <ScrollableTabBar style={{height: 40, borderWidth: 0, elevation: 2}}
+                                                      tabStyle={{height: 39}}/>}
             >
                 {this.state.languages.map((result, i, arr) => {
                     let lan = arr[i];
@@ -134,7 +144,8 @@ class PopularTab extends Component {
             result: '',
             dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             isLoading: false,
-            favoriteKeys: []
+            favoriteKeys: [],
+            theme: this.props.theme
         };
     }
 
@@ -230,6 +241,7 @@ class PopularTab extends Component {
         return <RepositoryCell
             key={projectModel.item.id}
             projectModel={projectModel}
+            theme = {this.props.theme}
             onSelect={() => ActionUtils.onSelect({
                 projectModel: projectModel,
                 flag: FLAG_STORAGE.flag_popular,
@@ -247,10 +259,10 @@ class PopularTab extends Component {
                 refreshControl={<RefreshControl
                     refreshing={this.state.isLoading}
                     onRefresh={() => this.loadData()}
-                    colors={['#2196F3']}
-                    tintColor={'#2196F3'}
+                    colors={[this.props.theme.themeColor]}
+                    tintColor={this.props.theme.themeColor}
                     title={'Loading...'}
-                    titleColor={'#2196F3'}
+                    titleColor={this.props.theme.themeColor}
                 />}
             />
         </View>

@@ -124,7 +124,7 @@ export default class MoreMenu extends Component {
             case MORE_MENU.Share:
                 var shareApp=share.share_app;
                 UShare.share(shareApp.title, shareApp.content,
-                    shareApp.imgUrl,shareApp.url,()=>{},()=>{})
+                    shareApp.imgUrl,shareApp.url,()=>{},()=>{});
                 break;
         }
         if (TargetComponent) {

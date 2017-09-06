@@ -22,23 +22,35 @@ import GlobalStyles from '../../../res/styles/GlobalStyles'
 import ViewUtils from '../../utils/ViewUtils'
 import AboutPage from '../about/AboutPage'
 import AboutMePage from '../about/AboutMePage'
+import CustomThemePage from './CustomTheme'
 
 export default class MyPage extends Component {
     // 构造
     constructor(props) {
         super(props);
         // 初始状态
-        this.state = {};
+        this.state = {
+            customThemeViewVisible: false,
+            theme: this.props.theme,
+        }
+    }
+
+    renderCustomThemeView() {
+        return (<CustomThemePage
+            visible={this.state.customThemeViewVisible}
+            {...this.props}
+            onClose={() => this.setState({customThemeViewVisible: false})}
+        />)
     }
 
     onClick(tab) {
-        let TargetComponent, params={...this.props, menuType:tab};
+        let TargetComponent, params = {...this.props, menuType: tab};
         switch (tab) {
             case MORE_MENU.Custom_Language:
                 TargetComponent = CustomKeyPage;
                 params.flag = FLAG_LANGUAGE.flag_language;
                 break;
-            case MORE_MENU.Custom_key:
+            case MORE_MENU.Custom_Key:
                 TargetComponent = CustomKeyPage;
                 params.flag = FLAG_LANGUAGE.flag_key;
                 break;
@@ -56,7 +68,7 @@ export default class MyPage extends Component {
                 params.flag = FLAG_LANGUAGE.flag_language;
                 break;
             case MORE_MENU.Custom_Theme:
-
+                this.setState({customThemeViewVisible: true});
                 break;
             case MORE_MENU.About_Author:
                 TargetComponent = AboutMePage;
@@ -67,22 +79,26 @@ export default class MyPage extends Component {
         }
         if (TargetComponent) {
             this.props.navigator.push({
-                component:TargetComponent,
-                params:params
+                component: TargetComponent,
+                params: params
 
             })
         }
     }
 
     getItem(tab, icon, text) {
-        return ViewUtils.getSettingItem(() => this.onClick(tab), icon, text, {tintColor: '#2196F3'}, null)
+        return ViewUtils.getSettingItem(() => this.onClick(tab), icon, text, this.state.theme.styles.tabBarSelectedIcon, null)
     }
 
     render() {
+        var statusBar = {
+            backgroundColor: this.state.theme.themeColor
+        };
         var navigationBar =
             <NavigationBar
+                statusBar={statusBar}
                 title={'我的'}
-                style={{backgroundColor: '#2196F3'}}
+                style={this.props.theme.styles.navBar}
             />;
         return (
             <View style={GlobalStyles.root_container}>
@@ -94,13 +110,19 @@ export default class MyPage extends Component {
                         <View style={[styles.item, {height: 90}]}>
                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                 <Image source={require('../../../res/images/ic_trending.png')}
-                                       style={[{width: 40, height: 40, marginRight: 10}, {tintColor: '#2196F3'}]}
+                                       style={[{width: 40, height: 40, marginRight: 10}, this.state.theme.styles.tabBarSelectedIcon]}
                                 />
                                 <Text>GitHub Popular</Text>
                             </View>
                             <Image source={require('../../../res/images/ic_tiaozhuan.png')}
-                                   style={[{width: 22, height: 22, marginRight: 10}, {tintColor: '#2196F3'}]}
-                            />
+                                   style={[{
+                                       opacity: 1,
+                                       width: 22,
+                                       height: 22,
+                                       marginRight: 10,
+                                       alignSelf: 'center',
+                                   },
+                                       this.state.theme.styles.tabBarSelectedIcon]}/>
                         </View>
                     </TouchableHighlight>
                     <View style={GlobalStyles.line}/>
@@ -117,7 +139,7 @@ export default class MyPage extends Component {
                     <Text style={styles.groupTitle}>标签管理</Text>
                     <View style={GlobalStyles.line}/>
                     {/*自定义标签*/}
-                    {this.getItem(MORE_MENU.Custom_key, require('./images/ic_custom_language.png'), '自定义标签')}
+                    {this.getItem(MORE_MENU.Custom_Key, require('./images/ic_custom_language.png'), '自定义标签')}
                     <View style={GlobalStyles.line}/>
                     {/*标签排序*/}
                     {this.getItem(MORE_MENU.Sort_Key, require('./images/ic_sort.png'), '标签排序')}
@@ -135,6 +157,7 @@ export default class MyPage extends Component {
                     {this.getItem(MORE_MENU.About_Author, require('./images/ic_insert_emoticon.png'), '关于作者')}
                     <View style={GlobalStyles.line}/>
                 </ScrollView>
+                {this.renderCustomThemeView()}
             </View>)
     }
 }

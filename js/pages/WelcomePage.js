@@ -12,12 +12,32 @@ import {
 } from 'react-native';
 import NavigationBar from '../common/NavigationBar';
 import HomePage from './HomePage'
+import ThemeDao from '../expand/dao/ThemeDao'
+import ThemeFactory from "../../res/styles/ThemeFactory";
 
 export default class WelcomePage extends Component {
+    // 构造
+    constructor(props) {
+        super(props);
+        // 初始状态
+        this.state = {
+            theme: ThemeFactory.createTheme('#2196F3')
+        };
+    }
+
     componentDidMount() {
-        this.timer = setTimeout(()=> {
+        new ThemeDao().getTheme().then((data) => {
+            this.theme = data;
+            this.setState({
+                theme: data
+            })
+        });
+        this.timer = setTimeout(() => {
             this.props.navigator.resetTo({
-                component: HomePage
+                component: HomePage,
+                params: {
+                    theme: this.theme,
+                }
             })
         }, 1000)
     }
@@ -28,10 +48,17 @@ export default class WelcomePage extends Component {
     }
 
     render() {
+        var statusBar = {
+            backgroundColor: this.state.theme.themeColor,
+            barStyle: 'light-content',
+        };
+        let navigationBar = <NavigationBar
+            title={'欢迎'}
+            statusBar={statusBar}
+            style={this.state.theme.styles.navBar}
+        />;
         return <View>
-            <NavigationBar
-                title={'欢迎'}
-            />
+            {navigationBar}
             <Text>欢迎</Text>
         </View>
     }

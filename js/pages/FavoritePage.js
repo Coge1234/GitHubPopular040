@@ -24,26 +24,69 @@ import ProjectModel from '../model/ProjectModel'
 import FavoriteDao from '../expand/dao/FavoriteDao'
 import ArrayUtils from '../utils/ArrayUtils'
 import ActionUtils from '../utils/ActionUtils'
+import ViewUtils from '../utils/ViewUtils'
+import {FLAG_TAB} from './HomePage'
+import MoreMenu, {MORE_MENU} from '../common/MoreMenu'
+import CustomThemePage from './my/CustomTheme'
 
 export default class FavoritePage extends Component {
     // 构造
     constructor(props) {
         super(props);
         // 初始状态
-        this.state = {};
+        this.state = {
+            theme: this.props.theme,
+            customThemeViewVisible: false
+        };
+    }
+
+    renderMoreView() {
+        let params = {...this.props, fromPage: FLAG_TAB.flag_popularTab};
+        return <MoreMenu
+            ref="moreMenu"
+            {...params}
+            menus={[MORE_MENU.Custom_Theme, MORE_MENU.Share,
+                MORE_MENU.About_Author, MORE_MENU.About]}
+            anchorView={() => this.refs.moreMenuButton}
+            onMoreMenuSelect={(e) => {
+                if (e === MORE_MENU.Custom_Theme) {
+                    this.setState({
+                        customThemeViewVisible: true
+                    })
+                }
+            }}
+        />
     }
 
     componentDidMount() {
 
     }
 
+    renderCustomThemeView() {
+        return (<CustomThemePage
+            visible={this.state.customThemeViewVisible}
+            {...this.props}
+            onClose={()=>this.setState({customThemeViewVisible: false})}
+        />)
+    }
+
     render() {
+        var statusBar = {
+            backgroundColor: this.state.theme.themeColor
+        };
+        let navigationBar = <NavigationBar
+            title={'收藏'}
+            statusBar={statusBar}
+            style={this.state.theme.styles.navBar}
+            rightButton={ViewUtils.getMoreButton(() => this.refs.moreMenu.open())}
+        />;
         let content = <ScrollableTabView
-            tabBarBackgroundColor="#2196F3"
+            tabBarBackgroundColor={this.state.theme.themeColor}
             tabBarInactiveTextColor="mintcream"
             tabBarActiveTextColor="white"
             ref="scrollableTabView"
             tabBarUnderlineStyle={{backgroundColor: '#e7e7e7', height: 2}}
+            initialPage={0}
             renderTabBar={() => <ScrollableTabBar style={{height: 40, borderWidth: 0, elevation: 2}}
                                                   tabStyle={{height: 39}}/>}
         >
@@ -51,13 +94,10 @@ export default class FavoritePage extends Component {
             <FavoriteTab tabLabel='趋势' flag={FLAG_STORAGE.flag_trending} {...this.props}/>
         </ScrollableTabView>;
         return <View style={styles.container}>
-            <NavigationBar
-                title={'收藏'}
-                statusBar={{
-                    backgroundColor: '#2196F3'
-                }}
-            />
+            {navigationBar}
             {content}
+            {this.renderMoreView()}
+            {this.renderCustomThemeView()}
         </View>
     }
 }
@@ -73,7 +113,8 @@ class FavoriteTab extends Component {
             result: '',
             dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             isLoading: false,
-            favoriteKeys: []
+            favoriteKeys: [],
+            theme: this.props.theme
         };
     }
 
@@ -142,6 +183,7 @@ class FavoriteTab extends Component {
 
     renderRow(projectModel) {
         let CellComponent = this.props.flag === FLAG_STORAGE.flag_popular ? RepositoryCell : TrendingCell;
+        let {navigator}=this.props;
         return <CellComponent
             key={this.props.flag === FLAG_STORAGE.flag_popular ? projectModel.item.id
                 : projectModel.item.fullName}
@@ -151,6 +193,9 @@ class FavoriteTab extends Component {
                 flag: this.props.flag,
                 ...this.props
             })}
+            isFavorite={true}
+            theme={this.props.theme}
+            {...{navigator}}
             onFavorite={(item, isFavorite) => this.onFavorite(item, isFavorite)}
         />
     }
@@ -163,11 +208,11 @@ class FavoriteTab extends Component {
                 enableEmptySections={true}
                 refreshControl={<RefreshControl
                     refreshing={this.state.isLoading}
-                    onRefresh={() => this.loadData()}
-                    colors={['#2196F3']}
-                    tintColor={'#2196F3'}
+                    onRefresh={() => this.loadData(true)}
+                    colors={[this.props.theme.themeColor]}
+                    tintColor={this.props.theme.themeColor}
                     title={'Loading...'}
-                    titleColor={'#2196F3'}
+                    titleColor={this.props.theme.themeColor}
                 />}
             />
         </View>

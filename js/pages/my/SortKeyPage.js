@@ -41,10 +41,10 @@ export default class SortKeyPage extends Component {
 
     loadData() {
         this.languageDao.fetch()
-            .then(result=> {
+            .then(result => {
                 this.getCheckedItems(result)
             })
-            .catch(error=> {
+            .catch(error => {
 
             })
     }
@@ -73,12 +73,16 @@ export default class SortKeyPage extends Component {
             '提示',
             '是否保存修改？',
             [
-                {text:'否', onPress:()=>{
+                {
+                    text: '否', onPress: () => {
                     this.props.navigator.pop();
-                }, style:'cancel'},
-                {text:'是', onPress:()=>{
+                }, style: 'cancel'
+                },
+                {
+                    text: '是', onPress: () => {
                     this.onSave(true)
-                }}
+                }
+                }
             ]
         )
     }
@@ -106,33 +110,28 @@ export default class SortKeyPage extends Component {
 
     render() {
         let title = this.props.flag === FLAG_LANGUAGE.flag_language ? '语言排序' : '标签排序';
-        let rightButton = <TouchableOpacity
-            onPress={()=>this.onSave()}
-        >
-            <View style={{margin:10}}>
-                <Text style={styles.title}>保存</Text>
-            </View>
-        </TouchableOpacity>;
-
+        var statusBar = {
+            backgroundColor: this.props.theme.themeColor
+        };
         let navigationBar =
             <NavigationBar
-                title = {title}
-                style={{backgroundColor:'#2196F3'}}
-                leftButton={ViewUtils.getLeftButton(()=>this.onBack())}
-                rightButton={rightButton} />;
-
+                title={title}
+                statusBar={statusBar}
+                leftButton={ViewUtils.getLeftButton(() => this.onBack())}
+                style={this.props.theme.styles.navBar}
+                rightButton={ViewUtils.getRightButton('保存', () => this.onSave())}/>;
 
         return <View style={styles.container}>
             {navigationBar}
             <SortableListView
-                style={{flex:1}}
+                style={{flex: 1}}
                 data={this.state.checkedArray}
                 order={Object.keys(this.state.checkedArray)}
-                onRowMoved={e=>{
+                onRowMoved={e => {
                     this.state.checkedArray.splice(e.to, 0, this.state.checkedArray.splice(e.from, 1)[0]);
                     this.forceUpdate();
                 }}
-                renderRow={row=><SortCell data={row}/>}
+                renderRow={row => <SortCell data={row} {...this.props}/>}
             />
         </View>
     }
@@ -144,12 +143,19 @@ class SortCell extends Component {
             <TouchableHighlight
                 underlayColor={'#eee'}
                 delayLongPress={500}
-                style={styles.item}
+                style={this.props.data.checked ? styles.item : styles.hidden}
                 {...this.props.sortHandlers}
             >
-                <View style={styles.row}>
+                <View style={{marginLeft: 10, flexDirection: 'row'}}>
                     <Image
-                        style={styles.image}
+                        style={[{
+                            opacity: 1,
+                            width: 16,
+                            height: 16,
+                            marginRight: 10,
+                        },
+                            this.props.theme.styles.tabBarSelectedIcon]}
+                        resizeMode='stretch'
                         source={require('./images/ic_sort.png')}/>
                     <Text>{this.props.data.name}</Text>
                 </View>
@@ -171,7 +177,9 @@ const styles = StyleSheet.create({
         padding: 15,
         backgroundColor: '#F8F8F8',
         borderBottomWidth: 1,
-        borderColor: '#eee'
+        borderColor: '#eee',
+        height: 50,
+        justifyContent: 'center'
     },
     row: {
         flexDirection: 'row',
@@ -186,5 +194,8 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         color: 'white'
-    }
+    },
+    hidden: {
+        height: 0
+    },
 });

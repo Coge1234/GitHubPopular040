@@ -79,6 +79,16 @@ export default class ViewUtils {
         </TouchableHighlight>
     }
 
+    static getRightButton(title, callBack) {
+        return <TouchableOpacity
+            style={{alignItems: 'center',}}
+            onPress={callBack}>
+            <View style={{marginRight: 10}}>
+                <Text style={{fontSize: 20, color: '#FFFFFF',}}>{title}</Text>
+            </View>
+        </TouchableOpacity>
+    }
+
     static getShareButton(callBack) {
         return <TouchableHighlight
             underlayColor={'transparent'}

@@ -38,6 +38,7 @@ export default class AboutPage extends Component {
     componentDidMount() {
         this.aboutCommon.componentDidMount();
     }
+
     updateState(dic) {
         this.setState(dic)
     }
@@ -46,7 +47,7 @@ export default class AboutPage extends Component {
         let TargetComponent, params = {...this.props, menuType: tab};
         switch (tab) {
             case MORE_MENU.About_Author:
-                TargetComponent=AboutMePage;
+                TargetComponent = AboutMePage;
                 break;
             case MORE_MENU.Website:
                 TargetComponent = WebViewPage;
@@ -76,11 +77,11 @@ export default class AboutPage extends Component {
     render() {
         let content = <View>
             {this.aboutCommon.renderRepository(this.state.projectModels)}
-            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.Website), require('../../../res/images/ic_computer.png'), MORE_MENU.Website, {tintColor: '#2196F3'}, null)}
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.Website), require('../../../res/images/ic_computer.png'), MORE_MENU.Website, this.props.theme.styles.tabBarSelectedIcon, null)}
             <View style={GlobalStyles.line}/>
-            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.About_Author), require('../my/images/ic_insert_emoticon.png'), MORE_MENU.About_Author, {tintColor: '#2196F3'}, null)}
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.About_Author), require('../my/images/ic_insert_emoticon.png'), MORE_MENU.About_Author, this.props.theme.styles.tabBarSelectedIcon, null)}
             <View style={GlobalStyles.line}/>
-            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.Feedback), require('../../../res/images/ic_feedback.png'), MORE_MENU.Feedback, {tintColor: '#2196F3'}, null)}
+            {ViewUtils.getSettingItem(() => this.onClick(MORE_MENU.Feedback), require('../../../res/images/ic_feedback.png'), MORE_MENU.Feedback, this.props.theme.styles.tabBarSelectedIcon, null)}
             <View style={GlobalStyles.line}/>
         </View>;
         return this.aboutCommon.render(content, {

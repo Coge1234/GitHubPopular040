@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import NavigationBar from '../../common/NavigationBar';
 import ViewUtils from '../../utils/ViewUtils';
-import LanguageDao, {FLAG_LANGUAGE}from '../../expand/dao/LanguageDao';
+import LanguageDao, {FLAG_LANGUAGE} from '../../expand/dao/LanguageDao';
 import CheckBox from 'react-native-check-box';
 import ArrayUtils from '../../utils/ArrayUtils'
 import {ACTION_HOME, FLAG_TAB} from "../HomePage";
@@ -40,12 +40,12 @@ export default class CustomKeyPage extends Component {
 
     loadData() {
         this.languageDao.fetch()
-            .then(result=> {
+            .then(result => {
                 this.setState({
                     dataArray: result
                 })
             })
-            .catch(error=> {
+            .catch(error => {
                 console.log(error);
             })
     }
@@ -84,7 +84,7 @@ export default class CustomKeyPage extends Component {
             )
         }
         views.push(
-            <View key={len-1}>
+            <View key={len - 1}>
                 <View style={styles.item}>
                     {len % 2 === 0 ? this.renderCheckBox(this.state.dataArray[len - 2]) : null}
                     {this.renderCheckBox(this.state.dataArray[len - 1])}
@@ -105,14 +105,14 @@ export default class CustomKeyPage extends Component {
         let isChecked = this.isRemoveKey ? false : data.checked;
         return (
             <CheckBox
-                style={{flex: 1, padding:10}}
-                onClick={()=>this.onClick(data)}
+                style={{flex: 1, padding: 10}}
+                onClick={() => this.onClick(data)}
                 leftText={leftText}
                 isChecked={isChecked}
-                checkedImage={<Image style={{tintColor:'#6495ED'}}
-                    source={require('./images/ic_check_box.png')}/>}
-                unCheckedImage={<Image style={{tintColor:'#6495ED'}}
-                    source={require('./images/ic_check_box_outline_blank.png')}/>}
+                checkedImage={<Image style={this.props.theme.styles.tabBarSelectedIcon}
+                                     source={require('./images/ic_check_box.png')}/>}
+                unCheckedImage={<Image style={this.props.theme.styles.tabBarSelectedIcon}
+                                       source={require('./images/ic_check_box_outline_blank.png')}/>}
             />
         )
     }
@@ -127,12 +127,12 @@ export default class CustomKeyPage extends Component {
             '要保存修改吗？',
             [
                 {
-                    text: '不保存', onPress: ()=> {
+                    text: '不保存', onPress: () => {
                     this.props.navigator.pop();
                 }, style: 'cancel'
                 },
                 {
-                    text: '保存', onPress: ()=> {
+                    text: '保存', onPress: () => {
                     this.onSave()
                 }
                 }
@@ -144,21 +144,19 @@ export default class CustomKeyPage extends Component {
         let title = this.isRemoveKey ? '标签移除' : '自定义标签';
         title = this.props.flag === FLAG_LANGUAGE.flag_language ? '自定义语言' : '自定义标签';
         let rightButtonTitle = this.isRemoveKey ? '移除' : '保存';
-        let rightButton = <TouchableOpacity
-            onPress={()=>this.onSave()}
-        >
-            <View style={{margin:10}}>
-                <Text style={styles.title}>{rightButtonTitle}</Text>
-            </View>
-        </TouchableOpacity>
+        var statusBar = {
+            backgroundColor: this.props.theme.themeColor
+        };
+        let navigationBar =
+            <NavigationBar
+                title={title}
+                statusBar={statusBar}
+                leftButton={ViewUtils.getLeftButton(() => this.onBack())}
+                style={this.props.theme.styles.navBar}
+                rightButton={ViewUtils.getRightButton(rightButtonTitle, () => this.onSave())}/>;
         return (
             <View style={styles.container}>
-                <NavigationBar
-                    title={title}
-                    style={{backgroundColor:'#2196F3'}}
-                    leftButton={ViewUtils.getLeftButton(()=>this.onBack())}
-                    rightButton={rightButton}
-                />
+                {navigationBar}
                 <ScrollView>
                     {this.renderView()}
                 </ScrollView>
